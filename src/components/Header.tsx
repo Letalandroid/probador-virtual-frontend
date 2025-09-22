@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, Search, User, Heart, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import SearchBar from './SearchBar';
 import LoginModal from './LoginModal';
 
@@ -21,45 +22,45 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
           <h1 className="text-2xl font-bold text-gradient">
             StyleAI
           </h1>
           <span className="text-xs text-muted-foreground hidden sm:block">Virtual Try-On</span>
-        </div>
+        </Link>
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <button 
-            onClick={() => handleGenderClick('Mujeres')}
+          <Link 
+            to="/mujeres"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
             Mujeres
-          </button>
-          <button 
-            onClick={() => handleGenderClick('Hombres')}
+          </Link>
+          <Link 
+            to="/hombres"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
             Hombres
-          </button>
-          <button 
-            onClick={() => handleGenderClick('Niños')}
+          </Link>
+          <Link 
+            to="/ninos"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
             Niños
-          </button>
-          <button 
-            onClick={() => handleGenderClick('Accesorios')}
+          </Link>
+          <Link 
+            to="/accesorios"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
             Accesorios
-          </button>
-          <button 
-            onClick={() => handleGenderClick('Ofertas')}
+          </Link>
+          <Link 
+            to="/ofertas"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
             Ofertas
-          </button>
+          </Link>
         </nav>
 
         {/* Search Bar */}

@@ -1,28 +1,31 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import CategoryGrid from '@/components/CategoryGrid';
-import ProductGrid from '@/components/ProductGrid';
 import FeatureSection from '@/components/FeatureSection';
 import Footer from '@/components/Footer';
+import { useNavigate } from 'react-router-dom';
 
-const Index = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [genderFilter, setGenderFilter] = useState('all');
+const Home = () => {
+  const navigate = useNavigate();
+
+  const handleSearch = (query: string) => {
+    navigate(`/productos?search=${encodeURIComponent(query)}`);
+  };
+
+  const handleGenderFilter = (gender: string) => {
+    navigate(`/productos?category=${gender.toLowerCase()}`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        onSearch={setSearchQuery} 
-        onGenderFilter={setGenderFilter}
+        onSearch={handleSearch} 
+        onGenderFilter={handleGenderFilter}
       />
       <main>
         <HeroSection />
         <CategoryGrid />
-        <ProductGrid 
-          searchQuery={searchQuery} 
-          genderFilter={genderFilter}
-        />
         <FeatureSection />
       </main>
       <Footer />
@@ -30,4 +33,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;
