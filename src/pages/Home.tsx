@@ -4,6 +4,7 @@ import HeroSection from '@/components/HeroSection';
 import CategoryGrid from '@/components/CategoryGrid';
 import FeatureSection from '@/components/FeatureSection';
 import Footer from '@/components/Footer';
+import PageTransition from '@/components/PageTransition';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
@@ -18,18 +19,20 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        onSearch={handleSearch} 
-        onGenderFilter={handleGenderFilter}
-      />
-      <main>
-        <HeroSection />
-        <CategoryGrid />
-        <FeatureSection />
-      </main>
-      <Footer />
-    </div>
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <Header 
+          onSearch={handleSearch} 
+          onGenderFilter={handleGenderFilter}
+        />
+        <main>
+          <HeroSection />
+          <CategoryGrid />
+          <FeatureSection />
+        </main>
+        <Footer />
+      </div>
+    </PageTransition>
   );
 };
 

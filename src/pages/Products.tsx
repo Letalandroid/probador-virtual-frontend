@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import ProductGrid from '@/components/ProductGrid';
+import PageTransition from '@/components/PageTransition';
 import Footer from '@/components/Footer';
 
 const Products = () => {
@@ -35,19 +36,21 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        onSearch={handleSearch} 
-        onGenderFilter={handleGenderFilter}
-      />
-      <main className="pt-8">
-        <ProductGrid 
-          searchQuery={search} 
-          genderFilter={getDisplayCategory(category)}
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <Header 
+          onSearch={handleSearch} 
+          onGenderFilter={handleGenderFilter}
         />
-      </main>
-      <Footer />
-    </div>
+        <main className="pt-8">
+          <ProductGrid 
+            searchQuery={search} 
+            genderFilter={getDisplayCategory(category)}
+          />
+        </main>
+        <Footer />
+      </div>
+    </PageTransition>
   );
 };
 

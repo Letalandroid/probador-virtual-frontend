@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import ProductGrid from '@/components/ProductGrid';
 import Footer from '@/components/Footer';
+import PageTransition from '@/components/PageTransition';
 import { useNavigate } from 'react-router-dom';
 
 const Offers = () => {
@@ -16,18 +17,20 @@ const Offers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header 
-        onSearch={handleSearch} 
-        onGenderFilter={handleGenderFilter}
-      />
-      <main className="pt-8">
-        <ProductGrid 
-          genderFilter="Ofertas"
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <Header 
+          onSearch={handleSearch} 
+          onGenderFilter={handleGenderFilter}
         />
-      </main>
-      <Footer />
-    </div>
+        <main className="pt-8">
+          <ProductGrid 
+            genderFilter="Ofertas"
+          />
+        </main>
+        <Footer />
+      </div>
+    </PageTransition>
   );
 };
 
