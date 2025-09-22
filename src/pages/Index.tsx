@@ -8,14 +8,21 @@ import Footer from '@/components/Footer';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [genderFilter, setGenderFilter] = useState('all');
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={setSearchQuery} />
+      <Header 
+        onSearch={setSearchQuery} 
+        onGenderFilter={setGenderFilter}
+      />
       <main>
         <HeroSection />
         <CategoryGrid />
-        <ProductGrid searchQuery={searchQuery} />
+        <ProductGrid 
+          searchQuery={searchQuery} 
+          genderFilter={genderFilter}
+        />
         <FeatureSection />
       </main>
       <Footer />

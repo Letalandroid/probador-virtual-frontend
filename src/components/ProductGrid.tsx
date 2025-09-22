@@ -5,110 +5,50 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
-
-const products = [
-  {
-    id: 1,
-    name: 'Camiseta Básica Premium',
-    brand: 'StyleAI Collection',
-    price: 29.99,
-    originalPrice: 39.99,
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop',
-    category: 'Camisetas',
-    colors: ['bg-primary', 'bg-accent', 'bg-fashion-rose'],
-    sizes: ['XS', 'S', 'M', 'L', 'XL'],
-    isNew: false,
-    hasDiscount: true,
-    aiTryOn: true
-  },
-  {
-    id: 2,
-    name: 'Vestido Elegante de Verano',
-    brand: 'Fashion Forward',
-    price: 89.99,
-    originalPrice: null,
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=500&fit=crop',
-    category: 'Vestidos',
-    colors: ['bg-fashion-rose', 'bg-fashion-sage', 'bg-primary'],
-    sizes: ['XS', 'S', 'M', 'L'],
-    isNew: true,
-    hasDiscount: false,
-    aiTryOn: true
-  },
-  {
-    id: 3,
-    name: 'Jeans Skinny Fit',
-    brand: 'Urban Style',
-    price: 69.99,
-    originalPrice: 89.99,
-    image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=500&fit=crop',
-    category: 'Pantalones',
-    colors: ['bg-primary', 'bg-gray-600', 'bg-gray-400'],
-    sizes: ['26', '28', '30', '32', '34'],
-    isNew: false,
-    hasDiscount: true,
-    aiTryOn: true
-  },
-  {
-    id: 4,
-    name: 'Chaqueta de Cuero',
-    brand: 'Luxury Line',
-    price: 199.99,
-    originalPrice: null,
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop',
-    category: 'Chaquetas',
-    colors: ['bg-gray-900', 'bg-gray-700'],
-    sizes: ['S', 'M', 'L', 'XL'],
-    isNew: false,
-    hasDiscount: false,
-    aiTryOn: true
-  },
-  {
-    id: 5,
-    name: 'Blusa Floral Primavera',
-    brand: 'Garden Collection',
-    price: 45.99,
-    originalPrice: 59.99,
-    image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop',
-    category: 'Blusas',
-    colors: ['bg-fashion-rose', 'bg-fashion-cream', 'bg-fashion-sage'],
-    sizes: ['XS', 'S', 'M', 'L'],
-    isNew: true,
-    hasDiscount: true,
-    aiTryOn: true
-  },
-  {
-    id: 6,
-    name: 'Hoodie Oversized',
-    brand: 'Comfort Zone',
-    price: 79.99,
-    originalPrice: null,
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=500&fit=crop',
-    category: 'Sudaderas',
-    colors: ['bg-gray-600', 'bg-primary', 'bg-accent'],
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    isNew: false,
-    hasDiscount: false,
-    aiTryOn: true
-  }
-];
+import { mockProducts, getUniqueCategories, Product } from '@/data/mockProducts';
 
 interface ProductGridProps {
   searchQuery?: string;
+  genderFilter?: string;
 }
 
-const ProductGrid = ({ searchQuery = '' }: ProductGridProps) => {
+const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProps) => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
 
-  // Get unique categories from products
+  // Get unique categories from products based on current gender filter
   const categories = useMemo(() => {
-    return [...new Set(products.map(product => product.category))];
-  }, []);
+    let productsToFilter = mockProducts;
+    
+    if (genderFilter !== 'all') {
+      productsToFilter = mockProducts.filter(product => 
+        product.gender === genderFilter || product.gender === 'Unisex'
+      );
+    }
+    
+    return [...new Set(productsToFilter.map(product => product.category))];
+  }, [genderFilter]);
 
-  // Filter products based on category and search
+  // Filter products based on gender, category and search
   const filteredProducts = useMemo(() => {
-    let filtered = products;
+    let filtered = mockProducts;
+
+    // Filter by gender first
+    if (genderFilter !== 'all') {
+      if (genderFilter === 'Accesorios') {
+        // Show accessories for all genders
+        filtered = filtered.filter(product => 
+          ['Bolsos', 'Relojes', 'Gafas', 'Joyas'].includes(product.category)
+        );
+      } else if (genderFilter === 'Ofertas') {
+        // Show only products with discounts
+        filtered = filtered.filter(product => product.hasDiscount);
+      } else {
+        filtered = filtered.filter(product => 
+          product.gender === genderFilter || product.gender === 'Unisex'
+        );
+      }
+    }
 
     // Filter by category
     if (activeCategory !== 'all') {
@@ -121,22 +61,30 @@ const ProductGrid = ({ searchQuery = '' }: ProductGridProps) => {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(query.toLowerCase()) ||
         product.brand.toLowerCase().includes(query.toLowerCase()) ||
-        product.category.toLowerCase().includes(query.toLowerCase())
+        product.category.toLowerCase().includes(query.toLowerCase()) ||
+        product.gender.toLowerCase().includes(query.toLowerCase())
       );
     }
 
     return filtered;
-  }, [activeCategory, searchQuery, localSearchQuery]);
+  }, [activeCategory, searchQuery, localSearchQuery, genderFilter]);
+
+  // Reset category when gender filter changes
+  React.useEffect(() => {
+    setActiveCategory('all');
+  }, [genderFilter]);
 
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            {activeCategory === 'all' ? 'Productos Destacados' : activeCategory}
+            {genderFilter !== 'all' ? genderFilter : (activeCategory === 'all' ? 'Productos Destacados' : activeCategory)}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Descubre las últimas tendencias con probador virtual incluido
+            {genderFilter === 'Ofertas' ? 'Las mejores ofertas con descuentos especiales' :
+             genderFilter === 'Accesorios' ? 'Complementa tu estilo con nuestros accesorios' :
+             'Descubre las últimas tendencias con probador virtual incluido'}
           </p>
         </div>
 

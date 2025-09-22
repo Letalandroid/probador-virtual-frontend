@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShoppingBag, Search, User, Heart, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SearchBar from './SearchBar';
+import LoginModal from './LoginModal';
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
+  onGenderFilter?: (gender: string) => void;
 }
 
-const Header = ({ onSearch }: HeaderProps) => {
+const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const handleGenderClick = (gender: string) => {
+    if (onGenderFilter) {
+      onGenderFilter(gender);
+    }
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -21,21 +30,36 @@ const Header = ({ onSearch }: HeaderProps) => {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#" className="text-sm font-medium hover:text-accent transition-colors">
+          <button 
+            onClick={() => handleGenderClick('Mujeres')}
+            className="text-sm font-medium hover:text-accent transition-colors"
+          >
             Mujeres
-          </a>
-          <a href="#" className="text-sm font-medium hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => handleGenderClick('Hombres')}
+            className="text-sm font-medium hover:text-accent transition-colors"
+          >
             Hombres
-          </a>
-          <a href="#" className="text-sm font-medium hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => handleGenderClick('Niños')}
+            className="text-sm font-medium hover:text-accent transition-colors"
+          >
             Niños
-          </a>
-          <a href="#" className="text-sm font-medium hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => handleGenderClick('Accesorios')}
+            className="text-sm font-medium hover:text-accent transition-colors"
+          >
             Accesorios
-          </a>
-          <a href="#" className="text-sm font-medium hover:text-accent transition-colors">
+          </button>
+          <button 
+            onClick={() => handleGenderClick('Ofertas')}
+            className="text-sm font-medium hover:text-accent transition-colors"
+          >
             Ofertas
-          </a>
+          </button>
         </nav>
 
         {/* Search Bar */}
@@ -51,7 +75,11 @@ const Header = ({ onSearch }: HeaderProps) => {
           <Button variant="ghost" size="icon">
             <Heart className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setIsLoginModalOpen(true)}
+          >
             <User className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" className="relative">
@@ -65,6 +93,11 @@ const Header = ({ onSearch }: HeaderProps) => {
           </Button>
         </div>
       </div>
+      
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </header>
   );
 };
