@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -7,13 +7,15 @@ import FeatureSection from '@/components/FeatureSection';
 import Footer from '@/components/Footer';
 
 const Index = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onSearch={setSearchQuery} />
       <main>
         <HeroSection />
         <CategoryGrid />
-        <ProductGrid />
+        <ProductGrid searchQuery={searchQuery} />
         <FeatureSection />
       </main>
       <Footer />

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
+import CategoryFilter from './CategoryFilter';
+import SearchBar from './SearchBar';
 
 const products = [
   {
@@ -91,21 +93,84 @@ const products = [
   }
 ];
 
-const ProductGrid = () => {
+interface ProductGridProps {
+  searchQuery?: string;
+}
+
+const ProductGrid = ({ searchQuery = '' }: ProductGridProps) => {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  // Get unique categories from products
+  const categories = useMemo(() => {
+    return [...new Set(products.map(product => product.category))];
+  }, []);
+
+  // Filter products based on category and search
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
+
+    // Filter by category
+    if (activeCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === activeCategory);
+    }
+
+    // Filter by search query (use external searchQuery or local one)
+    const query = searchQuery || localSearchQuery;
+    if (query) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.brand.toLowerCase().includes(query.toLowerCase()) ||
+        product.category.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    return filtered;
+  }, [activeCategory, searchQuery, localSearchQuery]);
+
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            Productos Destacados
+            {activeCategory === 'all' ? 'Productos Destacados' : activeCategory}
           </h2>
           <p className="text-lg text-muted-foreground">
             Descubre las últimas tendencias con probador virtual incluido
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
+        {/* Mobile Search */}
+        <div className="lg:hidden mb-6">
+          <SearchBar onSearch={setLocalSearchQuery} />
+        </div>
+
+        {/* Category Filter */}
+        <CategoryFilter
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+
+        {filteredProducts.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-lg text-muted-foreground">
+              No se encontraron productos
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActiveCategory('all');
+                setLocalSearchQuery('');
+              }}
+              className="mt-4"
+            >
+              Ver todos los productos
+            </Button>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
               <div className="relative">
                 <img
@@ -189,8 +254,9 @@ const ProductGrid = () => {
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button variant="outline" size="lg">

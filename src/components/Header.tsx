@@ -1,9 +1,13 @@
 import React from 'react';
 import { ShoppingBag, Search, User, Heart, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import SearchBar from './SearchBar';
 
-const Header = () => {
+interface HeaderProps {
+  onSearch?: (query: string) => void;
+}
+
+const Header = ({ onSearch }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -36,13 +40,7 @@ const Header = () => {
 
         {/* Search Bar */}
         <div className="hidden lg:flex flex-1 max-w-sm mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar productos..."
-              className="pl-10 bg-muted/50 border-0 focus-visible:ring-accent"
-            />
-          </div>
+          <SearchBar onSearch={onSearch || (() => {})} />
         </div>
 
         {/* Actions */}
