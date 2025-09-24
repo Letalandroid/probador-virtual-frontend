@@ -6,6 +6,7 @@ import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
 import { useProducts, Product } from '@/hooks/useProducts';
+import ProductPreview from './ProductPreview';
 import productPlaceholder from '@/assets/product-placeholder.jpg';
 
 interface ProductGridProps {
@@ -16,6 +17,8 @@ interface ProductGridProps {
 const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProps) => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { products, isLoading, error, trackProductView, getProductsByGender, getProductsByCategory, searchProducts } = useProducts();
 
   // Get unique categories from products based on current gender filter
@@ -56,6 +59,12 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
   React.useEffect(() => {
     setActiveCategory('all');
   }, [genderFilter]);
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsPreviewOpen(true);
+    trackProductView(product.id);
+  };
 
   return (
     <section className="py-16">
@@ -115,13 +124,12 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-            <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
-              <div className="relative">
+            <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer">
+              <div className="relative" onClick={() => handleProductClick(product)}>
                 <img
                   src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
-                  onClick={() => trackProductView(product.id)}
                   onError={(e) => {
                     console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
                     e.currentTarget.src = productPlaceholder;
@@ -149,7 +157,15 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   <Button size="icon" variant="secondary" className="h-8 w-8">
                     <Heart className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => trackProductView(product.id)}>
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className="h-8 w-8" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleProductClick(product);
+                    }}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
@@ -214,6 +230,13 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             Ver Todos los Productos
           </Button>
         </div>
+
+        {/* Product Preview Modal */}
+        <ProductPreview
+          product={selectedProduct}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       </div>
     </section>
   );
