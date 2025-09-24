@@ -6,6 +6,7 @@ import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
 import { useProducts, Product } from '@/hooks/useProducts';
+import productPlaceholder from '@/assets/product-placeholder.jpg';
 
 interface ProductGridProps {
   searchQuery?: string;
@@ -117,12 +118,16 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
               <div className="relative">
                 <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg'}
+                  src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                   onClick={() => trackProductView(product.id)}
                   onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
+                    console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
+                    e.currentTarget.src = productPlaceholder;
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully for product:', product.name);
                   }}
                 />
                 
