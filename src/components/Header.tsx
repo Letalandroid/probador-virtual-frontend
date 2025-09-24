@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Search, User, Heart, Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Search, Heart, User, ShoppingBag, Menu, LogOut, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SearchBar from './SearchBar';
-import LoginModal from './LoginModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -11,13 +12,14 @@ interface HeaderProps {
 }
 
 const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { user, userRole, signOut } = useAuth();
 
   const handleGenderClick = (gender: string) => {
     if (onGenderFilter) {
       onGenderFilter(gender);
     }
   };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -76,13 +78,42 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
           <Button variant="ghost" size="icon">
             <Heart className="h-5 w-5" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setIsLoginModalOpen(true)}
-          >
-            <User className="h-5 w-5" />
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/perfil" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Mi Perfil
+                  </Link>
+                </DropdownMenuItem>
+                {userRole === 'admin' && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Administración
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/auth">
+                <User className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="relative">
             <ShoppingBag className="h-5 w-5" />
             <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-accent text-xs flex items-center justify-center text-accent-foreground">
@@ -94,11 +125,6 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
           </Button>
         </div>
       </div>
-      
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-      />
     </header>
   );
 };
