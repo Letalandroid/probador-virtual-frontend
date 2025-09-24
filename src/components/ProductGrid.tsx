@@ -117,10 +117,13 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
               <div className="relative">
                 <img
-                  src={product.images[0] || '/placeholder.svg'}
+                  src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg'}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                   onClick={() => trackProductView(product.id)}
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
                 />
                 
                 {/* Badges */}
