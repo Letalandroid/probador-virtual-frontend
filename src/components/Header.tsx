@@ -46,22 +46,10 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
             Hombres
           </Link>
           <Link 
-            to="/ninos"
+            to="/probador-virtual"
             className="text-sm font-medium hover:text-accent transition-colors"
           >
-            Niños
-          </Link>
-          <Link 
-            to="/accesorios"
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Accesorios
-          </Link>
-          <Link 
-            to="/ofertas"
-            className="text-sm font-medium hover:text-accent transition-colors"
-          >
-            Ofertas
+            Probador Virtual
           </Link>
         </nav>
 
@@ -93,12 +81,26 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
                   </Link>
                 </DropdownMenuItem>
                 {userRole === 'admin' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Administración
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Productos
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/gestion-usuarios" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Usuarios
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/reportes" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Reportes
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer">

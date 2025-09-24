@@ -49,6 +49,53 @@ export const useProducts = () => {
     }
   };
 
+  // Track product views
+  const trackProductView = async (productId: string) => {
+    try {
+      await supabase
+        .from('product_views')
+        .insert({
+          product_id: productId,
+          view_type: 'catalog'
+        });
+    } catch (error) {
+      console.error('Error tracking view:', error);
+    }
+  };
+
+  const getProductsByGender = (gender: string) => {
+    if (gender === 'all') return products;
+    // Only show men and women products, exclude kids
+    if (gender === 'women') {
+      return products.filter(product => product.gender.toLowerCase() === 'women');
+    }
+    if (gender === 'men') {
+      return products.filter(product => product.gender.toLowerCase() === 'men');
+    }
+    return products.filter(product => 
+      product.gender.toLowerCase() === gender.toLowerCase() || 
+      product.gender.toLowerCase() === 'unisex'
+    );
+  };
+
+  const getProductsByCategory = (categoryName: string) => {
+    if (categoryName === 'all') return products;
+    return products.filter(product => 
+      product.categories?.name.toLowerCase() === categoryName.toLowerCase()
+    );
+  };
+
+  const searchProducts = (query: string) => {
+    if (!query) return products;
+    const lowercaseQuery = query.toLowerCase();
+    return products.filter(product =>
+      product.name.toLowerCase().includes(lowercaseQuery) ||
+      (product.brand && product.brand.toLowerCase().includes(lowercaseQuery)) ||
+      (product.categories?.name && product.categories.name.toLowerCase().includes(lowercaseQuery)) ||
+      product.gender.toLowerCase().includes(lowercaseQuery)
+    );
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -58,5 +105,9 @@ export const useProducts = () => {
     isLoading,
     error,
     refetch: fetchProducts,
+    trackProductView,
+    getProductsByGender,
+    getProductsByCategory,
+    searchProducts
   };
 };

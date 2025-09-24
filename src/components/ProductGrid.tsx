@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
-import { mockProducts, getUniqueCategories, Product } from '@/data/mockProducts';
+import { useProducts, Product } from '@/hooks/useProducts';
 
 interface ProductGridProps {
   searchQuery?: string;
@@ -15,59 +15,41 @@ interface ProductGridProps {
 const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProps) => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const { products, isLoading, error, trackProductView, getProductsByGender, getProductsByCategory, searchProducts } = useProducts();
 
   // Get unique categories from products based on current gender filter
   const categories = useMemo(() => {
-    let productsToFilter = mockProducts;
+    let productsToFilter = products;
     
     if (genderFilter !== 'all') {
-      productsToFilter = mockProducts.filter(product => 
-        product.gender === genderFilter || product.gender === 'Unisex'
-      );
+      productsToFilter = getProductsByGender(genderFilter);
     }
     
-    return [...new Set(productsToFilter.map(product => product.category))];
-  }, [genderFilter]);
+    return [...new Set(productsToFilter.map(product => product.categories?.name || 'Sin categoría'))];
+  }, [products, genderFilter, getProductsByGender]);
 
   // Filter products based on gender, category and search
   const filteredProducts = useMemo(() => {
-    let filtered = mockProducts;
+    let filtered = products;
 
     // Filter by gender first
     if (genderFilter !== 'all') {
-      if (genderFilter === 'Accesorios') {
-        // Show accessories for all genders
-        filtered = filtered.filter(product => 
-          ['Bolsos', 'Relojes', 'Gafas', 'Joyas'].includes(product.category)
-        );
-      } else if (genderFilter === 'Ofertas') {
-        // Show only products with discounts
-        filtered = filtered.filter(product => product.hasDiscount);
-      } else {
-        filtered = filtered.filter(product => 
-          product.gender === genderFilter || product.gender === 'Unisex'
-        );
-      }
+      filtered = getProductsByGender(genderFilter);
     }
 
     // Filter by category
     if (activeCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === activeCategory);
+      filtered = filtered.filter(product => product.categories?.name === activeCategory);
     }
 
     // Filter by search query (use external searchQuery or local one)
     const query = searchQuery || localSearchQuery;
     if (query) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.brand.toLowerCase().includes(query.toLowerCase()) ||
-        product.category.toLowerCase().includes(query.toLowerCase()) ||
-        product.gender.toLowerCase().includes(query.toLowerCase())
-      );
+      filtered = searchProducts(query);
     }
 
     return filtered;
-  }, [activeCategory, searchQuery, localSearchQuery, genderFilter]);
+  }, [products, activeCategory, searchQuery, localSearchQuery, genderFilter, getProductsByGender, searchProducts]);
 
   // Reset category when gender filter changes
   React.useEffect(() => {
@@ -79,12 +61,13 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            {genderFilter !== 'all' ? genderFilter : (activeCategory === 'all' ? 'Productos Destacados' : activeCategory)}
+            {genderFilter === 'women' ? 'Mujeres' : 
+             genderFilter === 'men' ? 'Hombres' :
+             genderFilter !== 'all' ? genderFilter : 
+             (activeCategory === 'all' ? 'Productos Destacados' : activeCategory)}
           </h2>
           <p className="text-lg text-muted-foreground">
-            {genderFilter === 'Ofertas' ? 'Las mejores ofertas con descuentos especiales' :
-             genderFilter === 'Accesorios' ? 'Complementa tu estilo con nuestros accesorios' :
-             'Descubre las últimas tendencias con probador virtual incluido'}
+            Descubre las últimas tendencias con probador virtual incluido
           </p>
         </div>
 
@@ -100,7 +83,19 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
           onCategoryChange={setActiveCategory}
         />
 
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-lg text-muted-foreground">
+              Cargando productos...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-lg text-destructive">
+              Error: {error}
+            </p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <p className="text-lg text-muted-foreground">
               No se encontraron productos
@@ -122,25 +117,23 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
               <div className="relative">
                 <img
-                  src={product.image}
+                  src={product.images[0] || '/placeholder.svg'}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                  onClick={() => trackProductView(product.id)}
                 />
                 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  {product.isNew && (
-                    <Badge className="bg-accent text-accent-foreground">Nuevo</Badge>
+                  {product.stock_quantity > 0 ? (
+                    <Badge className="bg-accent text-accent-foreground">Disponible</Badge>
+                  ) : (
+                    <Badge variant="destructive">Agotado</Badge>
                   )}
-                  {product.hasDiscount && (
-                    <Badge variant="destructive">-25%</Badge>
-                  )}
-                  {product.aiTryOn && (
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Camera className="h-3 w-3 mr-1" />
-                      IA
-                    </Badge>
-                  )}
+                  <Badge className="bg-primary text-primary-foreground">
+                    <Camera className="h-3 w-3 mr-1" />
+                    IA
+                  </Badge>
                 </div>
 
                 {/* Actions */}
@@ -148,7 +141,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   <Button size="icon" variant="secondary" className="h-8 w-8">
                     <Heart className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                  <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => trackProductView(product.id)}>
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
@@ -164,37 +157,39 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
               <div className="p-4 space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">{product.brand}</p>
+                  <p className="text-sm text-muted-foreground">{product.brand || 'Marca'}</p>
                   <h3 className="font-semibold text-lg group-hover:text-accent transition-colors">
                     {product.name}
                   </h3>
                 </div>
 
-                {/* Colors */}
-                <div className="flex gap-2">
-                  {product.colors.map((color, index) => (
-                    <div
-                      key={index}
-                      className={`w-4 h-4 rounded-full border-2 border-background shadow-sm ${color}`}
-                    />
-                  ))}
-                </div>
+                {/* Color indicator */}
+                {product.color && (
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground">Color:</span>
+                    <span className="text-sm font-medium">{product.color}</span>
+                  </div>
+                )}
 
                 {/* Price */}
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold">${product.price}</span>
-                  {product.originalPrice && (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${product.originalPrice}
-                    </span>
-                  )}
+                </div>
+
+                {/* Stock */}
+                <div className="text-sm text-muted-foreground">
+                  Stock: {product.stock_quantity} unidades
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <Button className="flex-1" variant="outline">
+                  <Button 
+                    className="flex-1" 
+                    variant="outline"
+                    disabled={product.stock_quantity === 0}
+                  >
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    Agregar
+                    {product.stock_quantity > 0 ? 'Agregar' : 'Agotado'}
                   </Button>
                   <Button size="icon" variant="accent">
                     <Camera className="h-4 w-4" />

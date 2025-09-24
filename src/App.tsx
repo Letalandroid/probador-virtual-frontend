@@ -8,12 +8,11 @@ import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Women from "./pages/Women";
 import Men from "./pages/Men";
-import Kids from "./pages/Kids";
-import Accessories from "./pages/Accessories";
-import Offers from "./pages/Offers";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import UserManagement from "./pages/UserManagement";
+import Reports from "./pages/Reports";
 import VirtualTryOn from "./pages/VirtualTryOn";
 import NotFound from "./pages/NotFound";
 
@@ -31,12 +30,11 @@ const App = () => (
             <Route path="/productos" element={<Products />} />
             <Route path="/mujeres" element={<Women />} />
             <Route path="/hombres" element={<Men />} />
-            <Route path="/ninos" element={<Kids />} />
-            <Route path="/accesorios" element={<Accessories />} />
-            <Route path="/ofertas" element={<Offers />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/perfil" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/gestion-usuarios" element={<UserManagement />} />
+            <Route path="/reportes" element={<Reports />} />
             <Route path="/probador-virtual" element={<VirtualTryOn />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

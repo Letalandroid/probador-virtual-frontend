@@ -25,7 +25,7 @@ const Men = () => {
         />
         <main className="pt-8">
           <ProductGrid 
-            genderFilter="Hombres"
+            genderFilter="men"
           />
         </main>
         <Footer />
