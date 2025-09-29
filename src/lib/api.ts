@@ -207,6 +207,222 @@ class ApiService {
   async deleteUser(id: string): Promise<ApiResponse<void>> {
     return this.request<void>('DELETE', `/users/${id}`);
   }
+
+  // AI/Virtual Try-On methods - Direct to Python API
+  private async callPythonApi<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async detectTorso(personImage: string): Promise<ApiResponse<any>> {
+    // Convert base64 to FormData for Python API
+    const formData = new FormData();
+    const blob = await this.base64ToBlob(personImage, 'image/jpeg');
+    formData.append('person_image', blob, 'person.jpg');
+
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/detect-torso`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async virtualTryOn(
+    personImage: string,
+    clothingImage: string,
+    clothingType: string,
+    stylePreferences?: any
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    const personBlob = await this.base64ToBlob(personImage, 'image/jpeg');
+    const clothingBlob = await this.base64ToBlob(clothingImage, 'image/jpeg');
+    
+    formData.append('person_image', personBlob, 'person.jpg');
+    formData.append('clothing_image', clothingBlob, 'clothing.jpg');
+    formData.append('clothing_type', clothingType);
+    
+    if (stylePreferences) {
+      formData.append('style_preferences', JSON.stringify(stylePreferences));
+    }
+
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/virtual-try-on`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async analyzeClothingFit(
+    personImage: string,
+    clothingImage: string
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    const personBlob = await this.base64ToBlob(personImage, 'image/jpeg');
+    const clothingBlob = await this.base64ToBlob(clothingImage, 'image/jpeg');
+    
+    formData.append('person_image', personBlob, 'person.jpg');
+    formData.append('clothing_image', clothingBlob, 'clothing.jpg');
+
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/analyze-clothing-fit`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async generateMultipleAngles(
+    personImage: string,
+    clothingImage: string,
+    angles?: string[]
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    const personBlob = await this.base64ToBlob(personImage, 'image/jpeg');
+    const clothingBlob = await this.base64ToBlob(clothingImage, 'image/jpeg');
+    
+    formData.append('person_image', personBlob, 'person.jpg');
+    formData.append('clothing_image', clothingBlob, 'clothing.jpg');
+    formData.append('angles', (angles || ['front', 'side', 'back']).join(','));
+
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/multiple-angles`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async enhanceImage(
+    image: string,
+    enhancementType?: string
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    const imageBlob = await this.base64ToBlob(image, 'image/jpeg');
+    
+    formData.append('image', imageBlob, 'image.jpg');
+    formData.append('enhancement_type', enhancementType || 'realistic');
+
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/enhance-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'Error connecting to AI service',
+      };
+    }
+  }
+
+  async checkAiHealth(): Promise<ApiResponse<any>> {
+    const pythonApiUrl = config.pythonApiUrl || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${pythonApiUrl}/health`);
+      const result = await response.json();
+      return { data: result };
+    } catch (error: any) {
+      return {
+        error: error.message || 'AI service not available',
+      };
+    }
+  }
+
+  private async base64ToBlob(base64: string, mimeType: string): Promise<Blob> {
+    const base64Data = base64.split(',')[1];
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  }
 }
 
 export const apiService = new ApiService();

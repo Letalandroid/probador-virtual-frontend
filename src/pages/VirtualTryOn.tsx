@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Upload, Camera, Download, RotateCcw, Loader2 } from 'lucide-react';
+import { Upload, Camera, Download, RotateCcw, Loader2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -30,6 +31,10 @@ const VirtualTryOn = () => {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [torsoAnalysis, setTorsoAnalysis] = useState<any>(null);
+  const [fitAnalysis, setFitAnalysis] = useState<any>(null);
+  const [multipleAngles, setMultipleAngles] = useState<any>(null);
+  const [currentAngle, setCurrentAngle] = useState<string>('front');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
