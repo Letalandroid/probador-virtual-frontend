@@ -89,3 +89,4 @@ npm run dev
 - Se mantiene la integración con Supabase solo para el probador virtual (si es necesario)
 - Todos los datos de productos y categorías vienen del backend
 - La autenticación usa JWT tokens almacenados en localStorage
+

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProps) => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const { products, isLoading, error, trackProductView, getProductsByGender, getProductsByCategory, searchProducts } = useProducts();
@@ -114,13 +116,17 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-            <Card key={product.id} className="group overflow-hidden border-0 card-fashion">
+            <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer" onClick={() => navigate(`/productos/${product.id}`)}>
               <div className="relative">
                 <img
                   src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
-                  onClick={() => trackProductView(product.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    trackProductView(product.id);
+                    navigate(`/productos/${product.id}`);
+                  }}
                   onError={(e) => {
                     console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
                     e.currentTarget.src = productPlaceholder;
@@ -145,17 +151,51 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* Actions */}
                 <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle favorite
+                    }}
+                  >
                     <Heart className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => trackProductView(product.id)}>
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className="h-8 w-8" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      trackProductView(product.id);
+                      navigate(`/productos/${product.id}`);
+                    }}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </div>
 
                 {/* AI Try-On Overlay */}
                 <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="fashion" size="lg">
+                  <Button 
+                    variant="fashion" 
+                    size="lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/probador-virtual', {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            images: product.images,
+                            brand: product.brand,
+                            price: product.price,
+                          }
+                        }
+                      });
+                    }}
+                  >
                     <Camera className="h-5 w-5 mr-2" />
                     Probar con IA
                   </Button>
@@ -194,11 +234,32 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                     className="flex-1" 
                     variant="outline"
                     disabled={product.stockQuantity === 0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle add to cart
+                    }}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     {product.stockQuantity > 0 ? 'Agregar' : 'Agotado'}
                   </Button>
-                  <Button size="icon" variant="accent">
+                  <Button 
+                    size="icon" 
+                    variant="accent"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/probador-virtual', {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            images: product.images,
+                            brand: product.brand,
+                            price: product.price,
+                          }
+                        }
+                      });
+                    }}
+                  >
                     <Camera className="h-4 w-4" />
                   </Button>
                 </div>

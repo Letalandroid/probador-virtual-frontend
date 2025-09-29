@@ -36,3 +36,4 @@ export const useCategories = () => {
     refetch: fetchCategories,
   };
 };
+

@@ -1,4 +1,5 @@
 // API service for backend communication
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { config } from '@/config/env';
 
 const API_BASE_URL = config.apiBaseUrl;
@@ -58,53 +59,75 @@ export interface Category {
 }
 
 class ApiService {
-  private baseURL: string;
+  private axiosInstance: AxiosInstance;
   private token: string | null = null;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
+    this.axiosInstance = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
     this.token = localStorage.getItem('auth_token');
+    this.setupInterceptors();
+  }
+
+  private setupInterceptors() {
+    // Request interceptor to add auth token
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        if (this.token) {
+          config.headers.Authorization = `Bearer ${this.token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor to handle errors
+    this.axiosInstance.interceptors.response.use(
+      (response: AxiosResponse) => {
+        return response;
+      },
+      (error) => {
+        if (error.response?.status === 401) {
+          // Token expired or invalid
+          this.token = null;
+          localStorage.removeItem('auth_token');
+          window.location.href = '/auth';
+        }
+        return Promise.reject(error);
+      }
+    );
   }
 
   private async request<T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     endpoint: string,
-    options: RequestInit = {}
+    data?: any
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    
-    const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.token && { Authorization: `Bearer ${this.token}` }),
-        ...options.headers,
-      },
-      ...options,
-    };
-
     try {
-      const response = await fetch(url, config);
-      const data = await response.json();
+      const response = await this.axiosInstance.request({
+        method,
+        url: endpoint,
+        data,
+      });
 
-      if (!response.ok) {
-        return {
-          error: data.message || `HTTP error! status: ${response.status}`,
-        };
-      }
-
-      return { data };
-    } catch (error) {
+      return { data: response.data };
+    } catch (error: any) {
       return {
-        error: error instanceof Error ? error.message : 'Network error',
+        error: error.response?.data?.message || error.message || 'Network error',
       };
     }
   }
 
   // Auth methods
   async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; token: string }>> {
-    const response = await this.request<{ user: User; token: string }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
+    const response = await this.request<{ user: User; token: string }>('POST', '/auth/login', credentials);
 
     if (response.data?.token) {
       this.token = response.data.token;
@@ -115,10 +138,7 @@ class ApiService {
   }
 
   async register(userData: RegisterRequest): Promise<ApiResponse<{ user: User; token: string }>> {
-    const response = await this.request<{ user: User; token: string }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    });
+    const response = await this.request<{ user: User; token: string }>('POST', '/auth/register', userData);
 
     if (response.data?.token) {
       this.token = response.data.token;
@@ -134,79 +154,58 @@ class ApiService {
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request<User>('/auth/me');
+    return this.request<User>('GET', '/auth/me');
   }
 
   // Product methods
   async getProducts(): Promise<ApiResponse<Product[]>> {
-    return this.request<Product[]>('/products');
+    return this.request<Product[]>('GET', '/products');
   }
 
   async getProduct(id: string): Promise<ApiResponse<Product>> {
-    return this.request<Product>(`/products/${id}`);
+    return this.request<Product>('GET', `/products/${id}`);
   }
 
   async createProduct(product: Omit<Product, 'id' | 'createdAt'>): Promise<ApiResponse<Product>> {
-    return this.request<Product>('/products', {
-      method: 'POST',
-      body: JSON.stringify(product),
-    });
+    return this.request<Product>('POST', '/products', product);
   }
 
   async updateProduct(id: string, product: Partial<Product>): Promise<ApiResponse<Product>> {
-    return this.request<Product>(`/products/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(product),
-    });
+    return this.request<Product>('PUT', `/products/${id}`, product);
   }
 
   async deleteProduct(id: string): Promise<ApiResponse<void>> {
-    return this.request<void>(`/products/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<void>('DELETE', `/products/${id}`);
   }
 
   // Category methods
   async getCategories(): Promise<ApiResponse<Category[]>> {
-    return this.request<Category[]>('/categories');
+    return this.request<Category[]>('GET', '/categories');
   }
 
   async createCategory(category: Omit<Category, 'id' | 'createdAt'>): Promise<ApiResponse<Category>> {
-    return this.request<Category>('/categories', {
-      method: 'POST',
-      body: JSON.stringify(category),
-    });
+    return this.request<Category>('POST', '/categories', category);
   }
 
   async updateCategory(id: string, category: Partial<Category>): Promise<ApiResponse<Category>> {
-    return this.request<Category>(`/categories/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(category),
-    });
+    return this.request<Category>('PUT', `/categories/${id}`, category);
   }
 
   async deleteCategory(id: string): Promise<ApiResponse<void>> {
-    return this.request<void>(`/categories/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<void>('DELETE', `/categories/${id}`);
   }
 
   // User management methods (admin only)
   async getUsers(): Promise<ApiResponse<User[]>> {
-    return this.request<User[]>('/users');
+    return this.request<User[]>('GET', '/users');
   }
 
   async updateUserRole(id: string, role: 'admin' | 'client'): Promise<ApiResponse<User>> {
-    return this.request<User>(`/users/${id}/role`, {
-      method: 'PUT',
-      body: JSON.stringify({ role }),
-    });
+    return this.request<User>('PUT', `/users/${id}/role`, { role });
   }
 
   async deleteUser(id: string): Promise<ApiResponse<void>> {
-    return this.request<void>(`/users/${id}`, {
-      method: 'DELETE',
-    });
+    return this.request<void>('DELETE', `/users/${id}`);
   }
 }
 
