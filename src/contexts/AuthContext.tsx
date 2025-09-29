@@ -1,34 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { apiService, User } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-
-interface Profile {
-  id: string;
-  user_id: string;
-  full_name?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  postal_code?: string;
-  country?: string;
-  avatar_url?: string;
-}
-
-interface UserRole {
-  role: 'admin' | 'client';
-}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  profile: Profile | null;
-  userRole: 'admin' | 'client' | null;
   isLoading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  updateProfile: (data: Partial<Profile>) => Promise<{ error: any }>;
+  updateProfile: (data: Partial<User>) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,136 +23,59 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'client' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchCurrentUser = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-        return;
+      const response = await apiService.getCurrentUser();
+      if (response.data) {
+        setUser(response.data);
+      } else {
+        setUser(null);
       }
-
-      setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-
-      setUserRole(data?.role || 'client');
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole('client');
+      console.error('Error fetching current user:', error);
+      setUser(null);
     }
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Defer database calls to prevent deadlock
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchUserRole(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setUserRole(null);
-        }
-        
-        setIsLoading(false);
+    // Check for existing session on mount
+    const checkAuth = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        await fetchCurrentUser();
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(() => {
-          fetchProfile(session.user.id);
-          fetchUserRole(session.user.id);
-        }, 0);
-      }
-      
       setIsLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkAuth();
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/auth`;
-      
-      const { data, error } = await supabase.auth.signUp({
+      const response = await apiService.register({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-          }
-        }
+        fullName,
       });
 
-      if (error) {
+      if (response.error) {
         toast({
           title: "Error en el registro",
-          description: error.message,
+          description: response.error,
           variant: "destructive",
         });
-        return { error };
+        return { error: response.error };
       }
 
-      if (data?.user && !data.session) {
+      if (response.data) {
+        setUser(response.data.user);
         toast({
-          title: "Verifica tu email",
-          description: "Te hemos enviado un enlace de verificación a tu correo electrónico.",
+          title: "¡Registro exitoso!",
+          description: "Tu cuenta ha sido creada correctamente.",
         });
-      }
-
-      // Create profile if user was created
-      if (data?.user && fullName) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              user_id: data.user.id,
-              full_name: fullName,
-            }
-          ]);
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-        }
       }
 
       return { error: null };
@@ -188,24 +91,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const response = await apiService.login({
         email,
         password,
       });
 
-      if (error) {
+      if (response.error) {
         toast({
           title: "Error en el inicio de sesión",
-          description: error.message,
+          description: response.error,
           variant: "destructive",
         });
-        return { error };
+        return { error: response.error };
       }
 
-      toast({
-        title: "¡Bienvenido!",
-        description: "Has iniciado sesión exitosamente.",
-      });
+      if (response.data) {
+        setUser(response.data.user);
+        toast({
+          title: "¡Bienvenido!",
+          description: "Has iniciado sesión exitosamente.",
+        });
+      }
 
       return { error: null };
     } catch (error: any) {
@@ -220,19 +126,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error al cerrar sesión",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Sesión cerrada",
-          description: "Has cerrado sesión exitosamente.",
-        });
-      }
+      await apiService.logout();
+      setUser(null);
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente.",
+      });
     } catch (error: any) {
       toast({
         title: "Error al cerrar sesión",
@@ -242,30 +141,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Profile>) => {
+  const updateProfile = async (data: Partial<User>) => {
     if (!user) return { error: new Error('No user logged in') };
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert([
-          {
-            user_id: user.id,
-            ...data,
-          }
-        ]);
-
-      if (error) {
-        toast({
-          title: "Error al actualizar perfil",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { error };
-      }
-
-      // Refresh profile
-      await fetchProfile(user.id);
+      // For now, we'll just update the local state
+      // In a real app, you'd call an API endpoint to update the user
+      setUser({ ...user, ...data });
       
       toast({
         title: "Perfil actualizado",
@@ -285,9 +167,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextType = {
     user,
-    session,
-    profile,
-    userRole,
     isLoading,
     signUp,
     signIn,

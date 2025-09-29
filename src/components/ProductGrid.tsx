@@ -26,7 +26,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
       productsToFilter = getProductsByGender(genderFilter);
     }
     
-    return [...new Set(productsToFilter.map(product => product.categories?.name || 'Sin categoría'))];
+    return [...new Set(productsToFilter.map(product => product.category?.name || 'Sin categoría'))];
   }, [products, genderFilter, getProductsByGender]);
 
   // Filter products based on gender, category and search
@@ -40,7 +40,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
     // Filter by category
     if (activeCategory !== 'all') {
-      filtered = filtered.filter(product => product.categories?.name === activeCategory);
+      filtered = filtered.filter(product => product.category?.name === activeCategory);
     }
 
     // Filter by search query (use external searchQuery or local one)
@@ -79,7 +79,6 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
         {/* Category Filter */}
         <CategoryFilter
-          categories={categories}
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
         />
@@ -133,7 +132,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  {product.stock_quantity > 0 ? (
+                  {product.stockQuantity > 0 ? (
                     <Badge className="bg-accent text-accent-foreground">Disponible</Badge>
                   ) : (
                     <Badge variant="destructive">Agotado</Badge>
@@ -186,7 +185,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* Stock */}
                 <div className="text-sm text-muted-foreground">
-                  Stock: {product.stock_quantity} unidades
+                  Stock: {product.stockQuantity} unidades
                 </div>
 
                 {/* Actions */}
@@ -194,10 +193,10 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   <Button 
                     className="flex-1" 
                     variant="outline"
-                    disabled={product.stock_quantity === 0}
+                    disabled={product.stockQuantity === 0}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    {product.stock_quantity > 0 ? 'Agregar' : 'Agotado'}
+                    {product.stockQuantity > 0 ? 'Agregar' : 'Agotado'}
                   </Button>
                   <Button size="icon" variant="accent">
                     <Camera className="h-4 w-4" />
