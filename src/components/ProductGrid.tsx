@@ -7,6 +7,7 @@ import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
 import { useProducts, Product } from '@/hooks/useProducts';
+import ProductPreview from './ProductPreview';
 import productPlaceholder from '@/assets/product-placeholder.jpg';
 
 interface ProductGridProps {
@@ -18,6 +19,8 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { products, isLoading, error, trackProductView, getProductsByGender, getProductsByCategory, searchProducts } = useProducts();
 
   // Get unique categories from products based on current gender filter
@@ -70,6 +73,12 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
   React.useEffect(() => {
     setActiveCategory('all');
   }, [genderFilter]);
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsPreviewOpen(true);
+    trackProductView(product.id);
+  };
 
   return (
     <section className="py-16">
@@ -286,6 +295,13 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             Ver Todos los Productos
           </Button>
         </div>
+
+        {/* Product Preview Modal */}
+        <ProductPreview
+          product={selectedProduct}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       </div>
     </section>
   );
