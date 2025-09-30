@@ -34,3 +34,4 @@ echo ""
 echo "Para ejecutar el backend:"
 echo "  cd ../backend && npm run start:dev"
 
+

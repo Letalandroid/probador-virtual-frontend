@@ -495,3 +495,4 @@ const VirtualTryOn = () => {
 };
 
 export default VirtualTryOn;
+

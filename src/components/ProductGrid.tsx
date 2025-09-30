@@ -28,12 +28,24 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
       productsToFilter = getProductsByGender(genderFilter);
     }
     
+    // Ensure productsToFilter is always an array
+    if (!Array.isArray(productsToFilter)) {
+      console.warn('productsToFilter is not an array:', productsToFilter);
+      return [];
+    }
+    
     return [...new Set(productsToFilter.map(product => product.category?.name || 'Sin categoría'))];
   }, [products, genderFilter, getProductsByGender]);
 
   // Filter products based on gender, category and search
   const filteredProducts = useMemo(() => {
     let filtered = products;
+
+    // Ensure products is an array
+    if (!Array.isArray(filtered)) {
+      console.warn('products is not an array:', filtered);
+      return [];
+    }
 
     // Filter by gender first
     if (genderFilter !== 'all') {

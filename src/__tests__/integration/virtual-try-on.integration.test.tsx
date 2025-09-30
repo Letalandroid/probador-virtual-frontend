@@ -272,3 +272,5 @@ describe('Virtual Try-On Integration', () => {
     expect(screen.getByText('Análisis de Ajuste')).toBeInTheDocument();
   });
 });
+
+

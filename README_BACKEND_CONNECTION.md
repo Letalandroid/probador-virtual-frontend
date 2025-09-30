@@ -90,3 +90,4 @@ npm run dev
 - Todos los datos de productos y categorías vienen del backend
 - La autenticación usa JWT tokens almacenados en localStorage
 
+

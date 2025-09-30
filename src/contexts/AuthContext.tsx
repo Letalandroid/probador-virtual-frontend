@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await apiService.register({
         email,
         password,
-        fullName,
+        full_name: fullName,
       });
 
       if (response.error) {

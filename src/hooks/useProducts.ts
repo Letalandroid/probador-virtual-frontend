@@ -17,7 +17,10 @@ export const useProducts = () => {
         throw new Error(response.error);
       }
 
-      setProducts(response.data || []);
+      // The API returns { products: [...], pagination: {...} }
+      // We need to extract the products array
+      const productsData = response.data?.products || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
       setError(null);
     } catch (err: any) {
       setError(err.message);
