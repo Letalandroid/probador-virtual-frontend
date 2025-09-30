@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProps) => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -29,12 +31,24 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
       productsToFilter = getProductsByGender(genderFilter);
     }
     
-    return [...new Set(productsToFilter.map(product => product.categories?.name || 'Sin categoría'))];
+    // Ensure productsToFilter is always an array
+    if (!Array.isArray(productsToFilter)) {
+      console.warn('productsToFilter is not an array:', productsToFilter);
+      return [];
+    }
+    
+    return [...new Set(productsToFilter.map(product => product.category?.name || 'Sin categoría'))];
   }, [products, genderFilter, getProductsByGender]);
 
   // Filter products based on gender, category and search
   const filteredProducts = useMemo(() => {
     let filtered = products;
+
+    // Ensure products is an array
+    if (!Array.isArray(filtered)) {
+      console.warn('products is not an array:', filtered);
+      return [];
+    }
 
     // Filter by gender first
     if (genderFilter !== 'all') {
@@ -43,7 +57,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
     // Filter by category
     if (activeCategory !== 'all') {
-      filtered = filtered.filter(product => product.categories?.name === activeCategory);
+      filtered = filtered.filter(product => product.category?.name === activeCategory);
     }
 
     // Filter by search query (use external searchQuery or local one)
@@ -88,7 +102,6 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
         {/* Category Filter */}
         <CategoryFilter
-          categories={categories}
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
         />
@@ -124,12 +137,17 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-            <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer">
-              <div className="relative" onClick={() => handleProductClick(product)}>
+            <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer" onClick={() => navigate(`/productos/${product.id}`)}>
+              <div className="relative">
                 <img
                   src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    trackProductView(product.id);
+                    navigate(`/productos/${product.id}`);
+                  }}
                   onError={(e) => {
                     console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
                     e.currentTarget.src = productPlaceholder;
@@ -141,7 +159,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  {product.stock_quantity > 0 ? (
+                  {product.stockQuantity > 0 ? (
                     <Badge className="bg-accent text-accent-foreground">Disponible</Badge>
                   ) : (
                     <Badge variant="destructive">Agotado</Badge>
@@ -154,7 +172,15 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* Actions */}
                 <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                  <Button 
+                    size="icon" 
+                    variant="secondary" 
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle favorite
+                    }}
+                  >
                     <Heart className="h-4 w-4" />
                   </Button>
                   <Button 
@@ -163,7 +189,8 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                     className="h-8 w-8" 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleProductClick(product);
+                      trackProductView(product.id);
+                      navigate(`/productos/${product.id}`);
                     }}
                   >
                     <Eye className="h-4 w-4" />
@@ -172,7 +199,24 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* AI Try-On Overlay */}
                 <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="fashion" size="lg">
+                  <Button 
+                    variant="fashion" 
+                    size="lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/probador-virtual', {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            images: product.images,
+                            brand: product.brand,
+                            price: product.price,
+                          }
+                        }
+                      });
+                    }}
+                  >
                     <Camera className="h-5 w-5 mr-2" />
                     Probar con IA
                   </Button>
@@ -202,7 +246,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* Stock */}
                 <div className="text-sm text-muted-foreground">
-                  Stock: {product.stock_quantity} unidades
+                  Stock: {product.stockQuantity} unidades
                 </div>
 
                 {/* Actions */}
@@ -210,12 +254,33 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   <Button 
                     className="flex-1" 
                     variant="outline"
-                    disabled={product.stock_quantity === 0}
+                    disabled={product.stockQuantity === 0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle add to cart
+                    }}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    {product.stock_quantity > 0 ? 'Agregar' : 'Agotado'}
+                    {product.stockQuantity > 0 ? 'Agregar' : 'Agotado'}
                   </Button>
-                  <Button size="icon" variant="accent">
+                  <Button 
+                    size="icon" 
+                    variant="accent"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/probador-virtual', {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            images: product.images,
+                            brand: product.brand,
+                            price: product.price,
+                          }
+                        }
+                      });
+                    }}
+                  >
                     <Camera className="h-4 w-4" />
                   </Button>
                 </div>

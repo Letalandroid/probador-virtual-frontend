@@ -1,22 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiService, Product } from '@/lib/api';
 
-export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  category_id: string;
-  brand?: string;
-  color?: string;
-  sizes: string[];
-  images: string[];
-  stock_quantity: number;
-  is_active: boolean;
-  gender: string;
-  created_at: string;
-  categories?: { name: string };
-}
+// Product interface is now imported from api.ts
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,20 +11,16 @@ export const useProducts = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories (name)
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      const response = await apiService.getProducts();
 
-      if (error) {
-        throw error;
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      setProducts(data || []);
+      // The API returns { products: [...], pagination: {...} }
+      // We need to extract the products array
+      const productsData = response.data?.products || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
       setError(null);
     } catch (err: any) {
       setError(err.message);
@@ -52,12 +33,9 @@ export const useProducts = () => {
   // Track product views
   const trackProductView = async (productId: string) => {
     try {
-      await supabase
-        .from('product_views')
-        .insert({
-          product_id: productId,
-          view_type: 'catalog'
-        });
+      // For now, we'll just log the view
+      // In a real app, you'd call an API endpoint to track views
+      console.log('Product view tracked:', productId);
     } catch (error) {
       console.error('Error tracking view:', error);
     }
@@ -81,7 +59,7 @@ export const useProducts = () => {
   const getProductsByCategory = (categoryName: string) => {
     if (categoryName === 'all') return products;
     return products.filter(product => 
-      product.categories?.name.toLowerCase() === categoryName.toLowerCase()
+      product.category?.name.toLowerCase() === categoryName.toLowerCase()
     );
   };
 
@@ -91,7 +69,7 @@ export const useProducts = () => {
     return products.filter(product =>
       product.name.toLowerCase().includes(lowercaseQuery) ||
       (product.brand && product.brand.toLowerCase().includes(lowercaseQuery)) ||
-      (product.categories?.name && product.categories.name.toLowerCase().includes(lowercaseQuery)) ||
+      (product.category?.name && product.category.name.toLowerCase().includes(lowercaseQuery)) ||
       product.gender.toLowerCase().includes(lowercaseQuery)
     );
   };
