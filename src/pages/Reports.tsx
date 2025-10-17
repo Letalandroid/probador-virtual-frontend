@@ -38,7 +38,7 @@ interface OrderStats {
 }
 
 const Reports = () => {
-  const { userRole } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [productStats, setProductStats] = useState<ProductStats[]>([]);
   const [orderStats, setOrderStats] = useState<OrderStats>({
@@ -52,11 +52,11 @@ const Reports = () => {
   const [timeFilter, setTimeFilter] = useState('all');
 
   useEffect(() => {
-    if (userRole !== 'admin') {
+    if (user?.role !== 'admin') {
       return;
     }
     fetchReports();
-  }, [userRole, timeFilter]);
+  }, [user?.role, timeFilter]);
 
   const fetchReports = async () => {
     try {
@@ -179,7 +179,7 @@ const Reports = () => {
     }
   };
 
-  if (userRole !== 'admin') {
+  if (user?.role !== 'admin') {
     return (
       <PageTransition>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">

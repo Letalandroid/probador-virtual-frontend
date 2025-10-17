@@ -2,15 +2,16 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Product } from '@/hooks/useProducts';
+import { Product } from '@/lib/api';
 import { Camera, ShoppingBag, Heart, Star, Package, Palette, Ruler, Tag } from 'lucide-react';
-import productPlaceholder from '@/assets/product-placeholder.jpg';
+// import productPlaceholder from '@/assets/product-placeholder.jpg';
 
 interface ProductPreviewProps {
   product: Product | null;
@@ -26,23 +27,26 @@ const ProductPreview = ({ product, isOpen, onClose }: ProductPreviewProps) => {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
+          <DialogDescription>
+            Vista previa del producto {product.name} - {product.brand || 'Marca no especificada'}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-6">
           {/* Imagen del producto */}
           <div className="relative">
             <img
-              src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
+              src={product.images && product.images.length > 0 ? product.images[0] : ''}
               alt={product.name}
               className="w-full h-96 object-cover rounded-lg"
               onError={(e) => {
-                e.currentTarget.src = productPlaceholder;
+                e.currentTarget.src = '';
               }}
             />
             
             {/* Badges sobre la imagen */}
             <div className="absolute top-3 left-3 flex flex-col gap-2">
-              {product.stock_quantity > 0 ? (
+              {product.stockQuantity > 0 ? (
                 <Badge className="bg-accent text-accent-foreground">Disponible</Badge>
               ) : (
                 <Badge variant="destructive">Agotado</Badge>
@@ -109,13 +113,13 @@ const ProductPreview = ({ product, isOpen, onClose }: ProductPreviewProps) => {
                 {/* Categoría */}
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">Categoría:</span>
-                  <span className="font-medium">{product.categories?.name || 'General'}</span>
+                  <span className="font-medium">{product.category?.name || 'General'}</span>
                 </div>
 
                 {/* Stock */}
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground">Stock:</span>
-                  <span className="font-medium">{product.stock_quantity} unidades</span>
+                  <span className="font-medium">{product.stockQuantity} unidades</span>
                 </div>
               </div>
 
@@ -157,10 +161,10 @@ const ProductPreview = ({ product, isOpen, onClose }: ProductPreviewProps) => {
                 <Button 
                   variant="outline" 
                   className="flex-1"
-                  disabled={product.stock_quantity === 0}
+                  disabled={product.stockQuantity === 0}
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
-                  {product.stock_quantity > 0 ? 'Agregar al Carrito' : 'Agotado'}
+                  {product.stockQuantity > 0 ? 'Agregar al Carrito' : 'Agotado'}
                 </Button>
                 
                 <Button variant="outline" size="icon">

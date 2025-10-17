@@ -1,5 +1,4 @@
 import '@testing-library/jest-dom';
-import './types/jest';
 
 // Mock import.meta
 Object.defineProperty(global, 'import', {
@@ -38,15 +37,15 @@ declare global {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: global.jest.fn().mockImplementation((query: string) => ({
+  value: jest.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: global.jest.fn(), // deprecated
-    removeListener: global.jest.fn(), // deprecated
-    addEventListener: global.jest.fn(),
-    removeEventListener: global.jest.fn(),
-    dispatchEvent: global.jest.fn(),
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
   })),
 });
 
@@ -85,9 +84,9 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
 };
 
-// Mock URL.createObjectURL
-global.URL.createObjectURL = global.jest.fn(() => 'mocked-url');
-global.URL.revokeObjectURL = global.jest.fn();
+// Mock URL.createObjectURL and URL.revokeObjectURL
+global.URL.createObjectURL = jest.fn(() => 'mocked-url');
+global.URL.revokeObjectURL = jest.fn();
 
 // Mock FileReader
 global.FileReader = class FileReader {
@@ -109,9 +108,9 @@ global.FileReader = class FileReader {
   onabort: ((event: Event) => void) | null = null;
 
   // EventTarget methods
-  addEventListener = global.jest.fn();
-  removeEventListener = global.jest.fn();
-  dispatchEvent = global.jest.fn();
+  addEventListener = jest.fn();
+  removeEventListener = jest.fn();
+  dispatchEvent = jest.fn();
 
   readAsDataURL() {
     this.readyState = 1;
@@ -139,30 +138,26 @@ global.FileReader = class FileReader {
 } as unknown as typeof FileReader;
 
 // Mock fetch
-global.fetch = global.jest.fn();
+global.fetch = jest.fn();
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: global.jest.fn(),
-  setItem: global.jest.fn(),
-  removeItem: global.jest.fn(),
-  clear: global.jest.fn(),
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
   length: 0,
-  key: global.jest.fn(),
+  key: jest.fn(),
 };
 global.localStorage = localStorageMock as unknown as Storage;
 
 // Mock sessionStorage
 const sessionStorageMock = {
-  getItem: global.jest.fn(),
-  setItem: global.jest.fn(),
-  removeItem: global.jest.fn(),
-  clear: global.jest.fn(),
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
   length: 0,
-  key: global.jest.fn(),
+  key: jest.fn(),
 };
 global.sessionStorage = sessionStorageMock as unknown as Storage;
-
-
-
-

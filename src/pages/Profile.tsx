@@ -26,18 +26,18 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>;
 
 const Profile = () => {
-  const { user, profile, userRole, updateProfile, signOut } = useAuth();
+  const { user, updateProfile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      full_name: profile?.full_name || '',
-      phone: profile?.phone || '',
-      address: profile?.address || '',
-      city: profile?.city || '',
-      postal_code: profile?.postal_code || '',
-      country: profile?.country || 'Colombia',
+      full_name: user?.full_name || '',
+      phone: user?.phone || '',
+      address: user?.address || '',
+      city: user?.city || '',
+      postal_code: user?.postal_code || '',
+      country: user?.country || 'Colombia',
     },
   });
 
@@ -234,7 +234,7 @@ const Profile = () => {
                       <div>
                         <h4 className="font-medium">Rol de Usuario</h4>
                         <p className="text-sm text-muted-foreground">
-                          {userRole === 'admin' ? 'Administrador' : 'Cliente'}
+                          {user?.role === 'admin' ? 'Administrador' : 'Cliente'}
                         </p>
                       </div>
                     </div>

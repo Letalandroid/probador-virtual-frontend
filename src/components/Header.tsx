@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
-  const { user, userRole, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleGenderClick = (gender: string) => {
     if (onGenderFilter) {
@@ -80,7 +80,7 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
                     Mi Perfil
                   </Link>
                 </DropdownMenuItem>
-                {userRole === 'admin' && (
+                {user?.role === 'admin' && (
                   <>
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="cursor-pointer">

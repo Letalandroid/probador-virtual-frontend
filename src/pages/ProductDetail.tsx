@@ -10,7 +10,7 @@ import { apiService, Product } from '@/lib/api';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageTransition from '@/components/PageTransition';
-import productPlaceholder from '@/assets/product-placeholder.jpg';
+// import productPlaceholder from '@/assets/product-placeholder.jpg';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -208,11 +208,11 @@ const ProductDetail = () => {
               <div className="space-y-4">
                 <div className="aspect-square bg-muted rounded-lg overflow-hidden">
                   <img
-                    src={product.images[selectedImageIndex] || productPlaceholder}
+                    src={product.images[selectedImageIndex] || ''}
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = productPlaceholder;
+                      e.currentTarget.src = '';
                     }}
                   />
                 </div>
@@ -234,7 +234,7 @@ const ProductDetail = () => {
                           alt={`${product.name} ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.currentTarget.src = productPlaceholder;
+                            e.currentTarget.src = '';
                           }}
                         />
                       </button>

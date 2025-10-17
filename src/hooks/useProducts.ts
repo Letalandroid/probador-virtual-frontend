@@ -17,9 +17,8 @@ export const useProducts = () => {
         throw new Error(response.error);
       }
 
-      // The API returns { products: [...], pagination: {...} }
-      // We need to extract the products array
-      const productsData = response.data?.products || response.data || [];
+      // The API returns Product[] directly
+      const productsData = response.data || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
       setError(null);
     } catch (err: any) {
@@ -86,6 +85,6 @@ export const useProducts = () => {
     trackProductView,
     getProductsByGender,
     getProductsByCategory,
-    searchProducts
+    searchProducts,
   };
 };

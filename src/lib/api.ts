@@ -26,6 +26,11 @@ export interface User {
   email: string;
   full_name?: string;
   role: 'admin' | 'client';
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +49,7 @@ export interface Product {
   isActive: boolean;
   gender: string;
   createdAt: string;
+  updatedAt: string;
   category?: {
     id: string;
     name: string;

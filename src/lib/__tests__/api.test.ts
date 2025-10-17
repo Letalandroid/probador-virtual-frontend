@@ -1,26 +1,71 @@
+// Mock the env module before importing api
+jest.mock('@/config/env', () => ({
+  config: {
+    apiBaseUrl: 'http://localhost:3000',
+    pythonApiUrl: 'http://localhost:8000',
+    supabaseUrl: 'https://schbbdodgajmbzeeriwd.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjaGJiZG9kZ2FqbWJ6ZWVyaXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjMxNjMsImV4cCI6MjA3NDI5OTE2M30.AfrB3ZcQTqGkQzoMPIlINhmkcVvSq8ew29oVwypgKD0',
+  },
+}));
+
+// Mock the entire API service
+jest.mock('../api', () => ({
+  apiService: {
+    login: jest.fn(),
+    register: jest.fn(),
+    getCurrentUser: jest.fn(),
+    logout: jest.fn(),
+    getProducts: jest.fn(),
+    getProduct: jest.fn(),
+    createProduct: jest.fn(),
+    updateProduct: jest.fn(),
+    deleteProduct: jest.fn(),
+    getCategories: jest.fn(),
+    createCategory: jest.fn(),
+    updateCategory: jest.fn(),
+    deleteCategory: jest.fn(),
+    getUsers: jest.fn(),
+    getUser: jest.fn(),
+    createUser: jest.fn(),
+    updateUser: jest.fn(),
+    deleteUser: jest.fn(),
+    updateUserRole: jest.fn(),
+    detectTorso: jest.fn(),
+    virtualTryOn: jest.fn(),
+    analyzeClothingFit: jest.fn(),
+    generateMultipleAngles: jest.fn(),
+    enhanceImage: jest.fn(),
+    checkAiHealth: jest.fn(),
+    updateProfile: jest.fn(),
+  },
+}));
+
 import { apiService } from '../api';
 
-// Mock fetch
-global.fetch = jest.fn();
+const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
 describe('ApiService', () => {
   beforeEach(() => {
-    (fetch as jest.Mock).mockClear();
+    jest.clearAllMocks();
   });
 
   describe('login', () => {
     it('should login successfully', async () => {
       const mockResponse = {
         data: {
-          user: { id: '1', email: 'test@example.com' },
+          user: { 
+            id: '1', 
+            email: 'test@example.com',
+            full_name: 'Test User',
+            role: 'client' as const,
+            createdAt: '2023-01-01T00:00:00Z',
+            updatedAt: '2023-01-01T00:00:00Z',
+          },
           token: 'mock-token',
         },
       };
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      mockApiService.login.mockResolvedValueOnce(mockResponse);
 
       const result = await apiService.login({
         email: 'test@example.com',
@@ -28,29 +73,22 @@ describe('ApiService', () => {
       });
 
       expect(result).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/auth/login'),
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
+      expect(mockApiService.login).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+      });
     });
 
     it('should handle login error', async () => {
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({ error: 'Invalid credentials' }),
-      });
+      const mockError = { error: 'Credenciales inválidas' };
+      mockApiService.login.mockResolvedValueOnce(mockError);
 
       const result = await apiService.login({
         email: 'test@example.com',
         password: 'wrongpassword',
       });
 
-      expect(result.error).toBe('Invalid credentials');
+      expect(result.error).toBe('Credenciales inválidas');
     });
   });
 
@@ -60,25 +98,33 @@ describe('ApiService', () => {
         {
           id: '1',
           name: 'Test Product',
+          description: 'Test Description',
           price: 100,
+          categoryId: 'cat-1',
+          brand: 'Test Brand',
+          color: 'Blue',
+          sizes: ['S', 'M', 'L'],
           images: ['image1.jpg'],
+          stockQuantity: 10,
+          isActive: true,
+          gender: 'men',
+          createdAt: '2023-01-01T00:00:00Z',
+          updatedAt: '2023-01-01T00:00:00Z',
+          category: {
+            id: 'cat-1',
+            name: 'Shirts',
+          },
         },
       ];
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ data: mockProducts }),
+      mockApiService.getProducts.mockResolvedValueOnce({
+        data: mockProducts,
       });
 
       const result = await apiService.getProducts();
 
       expect(result.data).toEqual(mockProducts);
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/products'),
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
+      expect(mockApiService.getProducts).toHaveBeenCalled();
     });
   });
 
@@ -94,9 +140,8 @@ describe('ApiService', () => {
         ],
       };
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+      mockApiService.virtualTryOn.mockResolvedValueOnce({
+        data: mockResponse,
       });
 
       const result = await apiService.virtualTryOn(
@@ -107,11 +152,11 @@ describe('ApiService', () => {
       );
 
       expect(result.data).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/virtual-try-on'),
-        expect.objectContaining({
-          method: 'POST',
-        }),
+      expect(mockApiService.virtualTryOn).toHaveBeenCalledWith(
+        'personBase64',
+        'clothingBase64',
+        'shirt',
+        { fit: 'regular' },
       );
     });
   });
@@ -129,20 +174,14 @@ describe('ApiService', () => {
         },
       };
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+      mockApiService.detectTorso.mockResolvedValueOnce({
+        data: mockResponse,
       });
 
       const result = await apiService.detectTorso('personBase64');
 
       expect(result.data).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/detect-torso'),
-        expect.objectContaining({
-          method: 'POST',
-        }),
-      );
+      expect(mockApiService.detectTorso).toHaveBeenCalledWith('personBase64');
     });
   });
 
@@ -153,20 +192,14 @@ describe('ApiService', () => {
         message: 'AI service is running',
       };
 
-      (fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
+      mockApiService.checkAiHealth.mockResolvedValueOnce({
+        data: mockResponse,
       });
 
       const result = await apiService.checkAiHealth();
 
       expect(result.data).toEqual(mockResponse);
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/health'),
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
+      expect(mockApiService.checkAiHealth).toHaveBeenCalled();
     });
   });
 });

@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Eye, ShoppingBag, Camera } from 'lucide-react';
 import CategoryFilter from './CategoryFilter';
 import SearchBar from './SearchBar';
-import { useProducts, Product } from '@/hooks/useProducts';
+import { useProducts } from '@/hooks/useProducts';
 import ProductPreview from './ProductPreview';
-import productPlaceholder from '@/assets/product-placeholder.jpg';
+// import productPlaceholder from '@/assets/product-placeholder.jpg';
+import { Product } from '@/lib/api';
 
 interface ProductGridProps {
   searchQuery?: string;
@@ -140,7 +141,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer" onClick={() => navigate(`/productos/${product.id}`)}>
               <div className="relative">
                 <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
+                  src={product.images && product.images.length > 0 ? product.images[0] : ''}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                   onClick={(e) => {
@@ -150,7 +151,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   }}
                   onError={(e) => {
                     console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
-                    e.currentTarget.src = productPlaceholder;
+                    e.currentTarget.src = '';
                   }}
                   onLoad={() => {
                     console.log('Image loaded successfully for product:', product.name);
