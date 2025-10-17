@@ -44,6 +44,7 @@ export interface Product {
   isActive: boolean;
   gender: string;
   createdAt: string;
+  updatedAt: string;
   category?: {
     id: string;
     name: string;

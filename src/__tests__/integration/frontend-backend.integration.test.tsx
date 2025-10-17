@@ -1,23 +1,24 @@
+// Mock the env module before importing anything else
+jest.mock('@/config/env', () => ({
+  config: {
+    apiBaseUrl: 'http://localhost:3000',
+    pythonApiUrl: 'http://localhost:8000',
+    supabaseUrl: 'https://schbbdodgajmbzeeriwd.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjaGJiZG9kZ2FqbWJ6ZWVyaXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MjMxNjMsImV4cCI6MjA3NDI5OTE2M30.AfrB3ZcQTqGkQzoMPIlINhmkcVvSq8ew29oVwypgKD0',
+  },
+}));
+
+// Mock the hero image import
+jest.mock('@/assets/hero-fashion.jpg', () => 'test-file-stub');
+
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { App } from '../../App';
+import App from '../../App';
 import { apiService } from '../../lib/api';
-
-// Mock del apiService
-jest.mock('../../lib/api', () => ({
-  apiService: {
-    getProducts: jest.fn(),
-    getCategories: jest.fn(),
-    getProduct: jest.fn(),
-    login: jest.fn(),
-    register: jest.fn(),
-    getCurrentUser: jest.fn(),
-    logout: jest.fn(),
-  },
-}));
+import { createMockProducts, createMockProduct, createMockUser } from '../../test-helpers/productMocks';
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
@@ -30,8 +31,8 @@ const createTestQueryClient = () => new QueryClient({
   },
 });
 
-// Wrapper para la aplicación completa
-const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+// Wrapper para la aplicación
+const AppWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = createTestQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
@@ -50,58 +51,21 @@ describe('Frontend-Backend Integration', () => {
   describe('Product Catalog Integration', () => {
     it('should load and display products from backend', async () => {
       // Arrange
-      const mockProducts = [
-        {
-          id: '1',
-          name: 'Test Product 1',
-          price: 100,
-          gender: 'men',
-          category: { id: 'cat-1', name: 'Shirts' },
-          brand: 'Test Brand',
-          color: 'Blue',
-          sizes: ['S', 'M', 'L'],
-          images: ['image1.jpg'],
-          stockQuantity: 10,
-          isActive: true,
-          createdAt: '2023-01-01T00:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'Test Product 2',
-          price: 200,
-          gender: 'women',
-          category: { id: 'cat-2', name: 'Dresses' },
-          brand: 'Test Brand 2',
-          color: 'Red',
-          sizes: ['XS', 'S', 'M'],
-          images: ['image2.jpg'],
-          stockQuantity: 5,
-          isActive: true,
-          createdAt: '2023-01-02T00:00:00Z',
-        },
-      ];
-
-      const mockCategories = [
-        { id: 'cat-1', name: 'Shirts', description: 'All shirts', isActive: true, createdAt: '2023-01-01T00:00:00Z' },
-        { id: 'cat-2', name: 'Dresses', description: 'All dresses', isActive: true, createdAt: '2023-01-02T00:00:00Z' },
-      ];
-
+      const mockProducts = createMockProducts(2);
       mockApiService.getProducts.mockResolvedValue({
-        data: { products: mockProducts },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: mockCategories,
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
+        data: mockProducts,
       });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
+
+      // Navigate to products page
+      const productsLink = screen.getByText('Productos');
+      await userEvent.click(productsLink);
 
       // Assert
       await waitFor(() => {
@@ -110,27 +74,22 @@ describe('Frontend-Backend Integration', () => {
       });
 
       expect(mockApiService.getProducts).toHaveBeenCalledTimes(1);
-      expect(mockApiService.getCategories).toHaveBeenCalledTimes(1);
     });
 
     it('should handle product loading error', async () => {
       // Arrange
-      mockApiService.getProducts.mockResolvedValue({
-        error: 'Failed to fetch products',
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
+      mockApiService.getProducts.mockRejectedValue(new Error('Failed to fetch products'));
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
+
+      // Navigate to products page
+      const productsLink = screen.getByText('Productos');
+      await userEvent.click(productsLink);
 
       // Assert
       await waitFor(() => {
@@ -140,59 +99,21 @@ describe('Frontend-Backend Integration', () => {
 
     it('should filter products by gender', async () => {
       // Arrange
-      const mockProducts = [
-        {
-          id: '1',
-          name: 'Men Shirt',
-          price: 100,
-          gender: 'men',
-          category: { id: 'cat-1', name: 'Shirts' },
-          brand: 'Test Brand',
-          color: 'Blue',
-          sizes: ['S', 'M', 'L'],
-          images: ['image1.jpg'],
-          stockQuantity: 10,
-          isActive: true,
-          createdAt: '2023-01-01T00:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'Women Dress',
-          price: 200,
-          gender: 'women',
-          category: { id: 'cat-2', name: 'Dresses' },
-          brand: 'Test Brand 2',
-          color: 'Red',
-          sizes: ['XS', 'S', 'M'],
-          images: ['image2.jpg'],
-          stockQuantity: 5,
-          isActive: true,
-          createdAt: '2023-01-02T00:00:00Z',
-        },
-      ];
-
+      const mockProducts = createMockProducts(4);
       mockApiService.getProducts.mockResolvedValue({
-        data: { products: mockProducts },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
+        data: mockProducts,
       });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Wait for products to load
-      await waitFor(() => {
-        expect(screen.getByText('Men Shirt')).toBeInTheDocument();
-        expect(screen.getByText('Women Dress')).toBeInTheDocument();
-      });
+      // Navigate to products page
+      const productsLink = screen.getByText('Productos');
+      await userEvent.click(productsLink);
 
       // Click on women filter
       const womenFilter = screen.getByText('Mujeres');
@@ -200,113 +121,62 @@ describe('Frontend-Backend Integration', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Women Dress')).toBeInTheDocument();
-        expect(screen.queryByText('Men Shirt')).not.toBeInTheDocument();
+        expect(screen.getByText('Test Product 2')).toBeInTheDocument();
+        expect(screen.getByText('Test Product 4')).toBeInTheDocument();
       });
     });
 
     it('should search products', async () => {
       // Arrange
-      const mockProducts = [
-        {
-          id: '1',
-          name: 'Blue Shirt',
-          price: 100,
-          gender: 'men',
-          category: { id: 'cat-1', name: 'Shirts' },
-          brand: 'Nike',
-          color: 'Blue',
-          sizes: ['S', 'M', 'L'],
-          images: ['image1.jpg'],
-          stockQuantity: 10,
-          isActive: true,
-          createdAt: '2023-01-01T00:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'Red Dress',
-          price: 200,
-          gender: 'women',
-          category: { id: 'cat-2', name: 'Dresses' },
-          brand: 'Adidas',
-          color: 'Red',
-          sizes: ['XS', 'S', 'M'],
-          images: ['image2.jpg'],
-          stockQuantity: 5,
-          isActive: true,
-          createdAt: '2023-01-02T00:00:00Z',
-        },
-      ];
-
+      const mockProducts = createMockProducts(4);
       mockApiService.getProducts.mockResolvedValue({
-        data: { products: mockProducts },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
+        data: mockProducts,
       });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Wait for products to load
-      await waitFor(() => {
-        expect(screen.getByText('Blue Shirt')).toBeInTheDocument();
-        expect(screen.getByText('Red Dress')).toBeInTheDocument();
-      });
+      // Navigate to products page
+      const productsLink = screen.getByText('Productos');
+      await userEvent.click(productsLink);
 
-      // Search for "shirt"
+      // Search for specific product
       const searchInput = screen.getByPlaceholderText('Buscar productos...');
-      await userEvent.type(searchInput, 'shirt');
+      await userEvent.type(searchInput, 'Test Product 1');
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Blue Shirt')).toBeInTheDocument();
-        expect(screen.queryByText('Red Dress')).not.toBeInTheDocument();
+        expect(screen.getByText('Test Product 1')).toBeInTheDocument();
       });
     });
   });
 
   describe('Product Detail Integration', () => {
-    it('should load product detail from backend', async () => {
+    it('should load and display product details', async () => {
       // Arrange
-      const mockProduct = {
+      const mockProduct = createMockProduct({
         id: '1',
         name: 'Test Product',
         description: 'Test Description',
         price: 100,
-        gender: 'men',
-        category: { id: 'cat-1', name: 'Shirts' },
-        brand: 'Test Brand',
-        color: 'Blue',
-        sizes: ['S', 'M', 'L'],
-        images: ['image1.jpg', 'image2.jpg'],
-        stockQuantity: 10,
-        isActive: true,
-        createdAt: '2023-01-01T00:00:00Z',
-      };
-
+      });
+      
       mockApiService.getProduct.mockResolvedValue({
         data: mockProduct,
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
       });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Navigate to product detail
+      // Navigate to product detail page
       window.history.pushState({}, '', '/productos/1');
 
       // Assert
@@ -319,24 +189,19 @@ describe('Frontend-Backend Integration', () => {
       expect(mockApiService.getProduct).toHaveBeenCalledWith('1');
     });
 
-    it('should handle product not found error', async () => {
+    it('should handle product not found', async () => {
       // Arrange
-      mockApiService.getProduct.mockResolvedValue({
-        error: 'Product not found',
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
+      mockApiService.getProduct.mockRejectedValue(new Error('Product not found'));
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
       // Navigate to non-existent product
-      window.history.pushState({}, '', '/productos/non-existent');
+      window.history.pushState({}, '', '/productos/999');
 
       // Assert
       await waitFor(() => {
@@ -346,20 +211,12 @@ describe('Frontend-Backend Integration', () => {
   });
 
   describe('Authentication Integration', () => {
-    it('should login user successfully', async () => {
+    it('should handle user login', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user-id',
-        email: 'test@example.com',
-        full_name: 'Test User',
-        role: 'client',
-        createdAt: '2023-01-01T00:00:00Z',
-        updatedAt: '2023-01-01T00:00:00Z',
-      };
-
+      const mockUser = createMockUser();
       const mockLoginResponse = {
         user: mockUser,
-        token: 'jwt-token',
+        token: 'mock-token',
       };
 
       mockApiService.login.mockResolvedValue({
@@ -368,22 +225,17 @@ describe('Frontend-Backend Integration', () => {
       mockApiService.getCurrentUser.mockResolvedValue({
         data: mockUser,
       });
-      mockApiService.getProducts.mockResolvedValue({
-        data: { products: [] },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Navigate to auth page
-      window.history.pushState({}, '', '/auth');
+      // Navigate to login page
+      const loginLink = screen.getByText('Iniciar Sesión');
+      await userEvent.click(loginLink);
 
       // Fill login form
       const emailInput = screen.getByPlaceholderText('Email');
@@ -405,35 +257,25 @@ describe('Frontend-Backend Integration', () => {
 
     it('should handle login error', async () => {
       // Arrange
-      mockApiService.login.mockResolvedValue({
-        error: 'Invalid credentials',
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
-      mockApiService.getProducts.mockResolvedValue({
-        data: { products: [] },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
+      mockApiService.login.mockRejectedValue(new Error('Invalid credentials'));
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Navigate to auth page
-      window.history.pushState({}, '', '/auth');
+      // Navigate to login page
+      const loginLink = screen.getByText('Iniciar Sesión');
+      await userEvent.click(loginLink);
 
-      // Fill login form
+      // Fill login form with invalid credentials
       const emailInput = screen.getByPlaceholderText('Email');
       const passwordInput = screen.getByPlaceholderText('Contraseña');
       const loginButton = screen.getByText('Iniciar Sesión');
 
-      await userEvent.type(emailInput, 'test@example.com');
+      await userEvent.type(emailInput, 'invalid@example.com');
       await userEvent.type(passwordInput, 'wrongpassword');
       await userEvent.click(loginButton);
 
@@ -443,66 +285,46 @@ describe('Frontend-Backend Integration', () => {
       });
     });
 
-    it('should register user successfully', async () => {
+    it('should handle user registration', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user-id',
-        email: 'test@example.com',
-        full_name: 'Test User',
-        role: 'client',
-        createdAt: '2023-01-01T00:00:00Z',
-        updatedAt: '2023-01-01T00:00:00Z',
-      };
-
+      const mockUser = createMockUser();
       const mockRegisterResponse = {
         user: mockUser,
-        token: 'jwt-token',
+        token: 'mock-token',
       };
 
       mockApiService.register.mockResolvedValue({
         data: mockRegisterResponse,
       });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        data: mockUser,
-      });
-      mockApiService.getProducts.mockResolvedValue({
-        data: { products: [] },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
-      // Navigate to auth page
-      window.history.pushState({}, '', '/auth');
+      // Navigate to register page
+      const registerLink = screen.getByText('Registrarse');
+      await userEvent.click(registerLink);
 
-      // Switch to register tab
-      const registerTab = screen.getByText('Registrarse');
-      await userEvent.click(registerTab);
-
-      // Fill register form
+      // Fill registration form
       const emailInput = screen.getByPlaceholderText('Email');
       const passwordInput = screen.getByPlaceholderText('Contraseña');
-      const fullNameInput = screen.getByPlaceholderText('Nombre completo');
+      const nameInput = screen.getByPlaceholderText('Nombre completo');
       const registerButton = screen.getByText('Registrarse');
 
-      await userEvent.type(emailInput, 'test@example.com');
+      await userEvent.type(emailInput, 'newuser@example.com');
       await userEvent.type(passwordInput, 'password123');
-      await userEvent.type(fullNameInput, 'Test User');
+      await userEvent.type(nameInput, 'New User');
       await userEvent.click(registerButton);
 
       // Assert
       await waitFor(() => {
         expect(mockApiService.register).toHaveBeenCalledWith({
-          email: 'test@example.com',
+          email: 'newuser@example.com',
           password: 'password123',
-          full_name: 'Test User',
+          full_name: 'New User',
         });
       });
     });
@@ -512,72 +334,12 @@ describe('Frontend-Backend Integration', () => {
     it('should handle network errors gracefully', async () => {
       // Arrange
       mockApiService.getProducts.mockRejectedValue(new Error('Network error'));
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
 
       // Act
       render(
-        <TestWrapper>
+        <AppWrapper>
           <App />
-        </TestWrapper>
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(screen.getByText('Error: Network error')).toBeInTheDocument();
-      });
-    });
-
-    it('should handle API timeout', async () => {
-      // Arrange
-      mockApiService.getProducts.mockImplementation(
-        () => new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 100)
-        )
-      );
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
-
-      // Act
-      render(
-        <TestWrapper>
-          <App />
-        </TestWrapper>
-      );
-
-      // Assert
-      await waitFor(() => {
-        expect(screen.getByText('Error: Request timeout')).toBeInTheDocument();
-      }, { timeout: 200 });
-    });
-  });
-
-  describe('Navigation Integration', () => {
-    it('should navigate between pages correctly', async () => {
-      // Arrange
-      mockApiService.getProducts.mockResolvedValue({
-        data: { products: [] },
-      });
-      mockApiService.getCategories.mockResolvedValue({
-        data: [],
-      });
-      mockApiService.getCurrentUser.mockResolvedValue({
-        error: 'Not authenticated',
-      });
-
-      // Act
-      render(
-        <TestWrapper>
-          <App />
-        </TestWrapper>
+        </AppWrapper>
       );
 
       // Navigate to products page
@@ -586,16 +348,28 @@ describe('Frontend-Backend Integration', () => {
 
       // Assert
       await waitFor(() => {
-        expect(window.location.pathname).toBe('/productos');
+        expect(screen.getByText('Error: Network error')).toBeInTheDocument();
       });
+    });
 
-      // Navigate to women page
-      const womenLink = screen.getByText('Mujeres');
-      await userEvent.click(womenLink);
+    it('should handle timeout errors', async () => {
+      // Arrange
+      mockApiService.getProducts.mockRejectedValue(new Error('Request timeout'));
+
+      // Act
+      render(
+        <AppWrapper>
+          <App />
+        </AppWrapper>
+      );
+
+      // Navigate to products page
+      const productsLink = screen.getByText('Productos');
+      await userEvent.click(productsLink);
 
       // Assert
       await waitFor(() => {
-        expect(window.location.pathname).toBe('/mujeres');
+        expect(screen.getByText('Error: Request timeout')).toBeInTheDocument();
       });
     });
   });

@@ -19,6 +19,10 @@ interface LocationState {
     images: string[];
     brand?: string;
     price: number;
+    category?: {
+      id: string;
+      name: string;
+    };
   };
 }
 

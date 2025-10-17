@@ -45,18 +45,22 @@ describe('AuthContext', () => {
   });
 
   describe('initialization', () => {
-    it('should initialize with no user and loading true', () => {
+    it('should initialize with no user and loading false when no token', async () => {
       // Arrange
-      mockApiService.getCurrentUser.mockImplementation(
-        () => new Promise(() => {}) // Never resolves
-      );
+      localStorageMock.getItem.mockReturnValue(null); // No token
 
       // Act
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Assert
       expect(result.current.user).toBeNull();
-      expect(result.current.isLoading).toBe(true);
+      
+      // Wait for loading to complete (no token means no API call)
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      
+      expect(result.current.user).toBeNull();
     });
 
     it('should check for existing token on mount', async () => {
@@ -338,7 +342,8 @@ describe('AuthContext', () => {
         updatedAt: '2023-01-01T00:00:00Z',
       };
 
-      // Set initial user
+      // Set up token and user
+      localStorageMock.getItem.mockReturnValue('mock-token');
       mockApiService.getCurrentUser.mockResolvedValue({
         data: mockUser,
       });
@@ -349,7 +354,10 @@ describe('AuthContext', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.user).toEqual(mockUser);
+      // Wait for user to be set
+      await waitFor(() => {
+        expect(result.current.user).toEqual(mockUser);
+      });
 
       // Act
       await act(async () => {
@@ -393,7 +401,8 @@ describe('AuthContext', () => {
         updatedAt: '2023-01-01T00:00:00Z',
       };
 
-      // Set initial user
+      // Set up token and user
+      localStorageMock.getItem.mockReturnValue('mock-token');
       mockApiService.getCurrentUser.mockResolvedValue({
         data: mockUser,
       });
@@ -402,6 +411,11 @@ describe('AuthContext', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+      });
+
+      // Wait for user to be set
+      await waitFor(() => {
+        expect(result.current.user).toEqual(mockUser);
       });
 
       // Act
@@ -448,7 +462,8 @@ describe('AuthContext', () => {
         updatedAt: '2023-01-01T00:00:00Z',
       };
 
-      // Set initial user
+      // Set up token and user
+      localStorageMock.getItem.mockReturnValue('mock-token');
       mockApiService.getCurrentUser.mockResolvedValue({
         data: mockUser,
       });
@@ -457,6 +472,11 @@ describe('AuthContext', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+      });
+
+      // Wait for user to be set
+      await waitFor(() => {
+        expect(result.current.user).toEqual(mockUser);
       });
 
       // Mock console.error to avoid error logs in test output

@@ -1,7 +1,6 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Camera, ShoppingBag } from 'lucide-react';
-import heroImage from '@/assets/hero-fashion.jpg';
+import heroImage from '../assets/hero-fashion.jpg';
 
 const HeroSection = () => {
   return (

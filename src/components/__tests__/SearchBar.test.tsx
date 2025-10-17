@@ -156,7 +156,7 @@ describe('SearchBar', () => {
     const input = screen.getByPlaceholderText('Buscar productos...');
 
     // Act
-    await user.type(input, 'hello world', { delay: 0 });
+    await user.type(input, 'hello world');
 
     // Assert
     expect(mockOnSearch).toHaveBeenCalledTimes(11); // 11 characters
