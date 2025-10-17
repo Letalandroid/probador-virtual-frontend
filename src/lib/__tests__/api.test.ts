@@ -40,7 +40,18 @@ jest.mock('../api', () => ({
   },
 }));
 
-import { apiService } from '../api';
+import { apiService, ProductsResponse } from '../api';
+
+// Helper function to create mock response
+const createMockProductsResponse = (products: any[]): ProductsResponse => ({
+  products,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: products.length,
+    pages: 1
+  }
+});
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
@@ -118,12 +129,12 @@ describe('ApiService', () => {
       ];
 
       mockApiService.getProducts.mockResolvedValueOnce({
-        data: mockProducts,
+        data: createMockProductsResponse(mockProducts),
       });
 
       const result = await apiService.getProducts();
 
-      expect(result.data).toEqual(mockProducts);
+      expect(result.data).toEqual(createMockProductsResponse(mockProducts));
       expect(mockApiService.getProducts).toHaveBeenCalled();
     });
   });

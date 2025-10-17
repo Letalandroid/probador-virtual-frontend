@@ -9,6 +9,7 @@ import SearchBar from './SearchBar';
 import { useProducts } from '@/hooks/useProducts';
 import ProductPreview from './ProductPreview';
 // import productPlaceholder from '@/assets/product-placeholder.jpg';
+const productPlaceholder = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
 import { Product } from '@/lib/api';
 
 interface ProductGridProps {
@@ -141,7 +142,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
             <Card key={product.id} className="group overflow-hidden border-0 card-fashion cursor-pointer" onClick={() => navigate(`/productos/${product.id}`)}>
               <div className="relative">
                 <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : ''}
+                  src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
                   alt={product.name}
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                   onClick={(e) => {
@@ -151,7 +152,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   }}
                   onError={(e) => {
                     console.log('Image failed to load for product:', product.name, 'URL:', e.currentTarget.src);
-                    e.currentTarget.src = '';
+                    e.currentTarget.src = productPlaceholder;
                   }}
                   onLoad={() => {
                     console.log('Image loaded successfully for product:', product.name);

@@ -1,8 +1,19 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProducts } from '../useProducts';
-import { apiService } from '@/lib/api';
+import { apiService, ProductsResponse } from '@/lib/api';
 import { createMockProducts } from '../../utils/testData';
+
+// Helper function to create mock response
+const createMockProductsResponse = (products: any[]): ProductsResponse => ({
+  products,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: products.length,
+    pages: 1
+  }
+});
 
 // Mock the API service
 jest.mock('@/lib/api', () => ({
@@ -38,7 +49,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(2);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -79,7 +90,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -105,7 +116,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -131,7 +142,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -154,7 +165,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -176,7 +187,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -198,7 +209,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act
@@ -220,7 +231,7 @@ describe('useProducts', () => {
     // Arrange
     const mockProducts = createMockProducts(4);
     mockApiService.getProducts.mockResolvedValue({
-      data: mockProducts,
+      data: createMockProductsResponse(mockProducts),
     });
 
     // Act

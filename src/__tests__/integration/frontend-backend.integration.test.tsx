@@ -41,7 +41,18 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from '../../App';
-import { apiService } from '../../lib/api';
+import { apiService, ProductsResponse } from '../../lib/api';
+
+// Helper function to create mock response
+const createMockProductsResponse = (products: any[]): ProductsResponse => ({
+  products,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: products.length,
+    pages: 1
+  }
+});
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
@@ -70,7 +81,7 @@ describe('Frontend-Backend Integration', () => {
 
     // Setup default mock implementations
     mockApiService.getProducts.mockResolvedValue({
-      data: [],
+      data: createMockProductsResponse([]),
     });
     mockApiService.getProduct.mockResolvedValue({
       data: null,
@@ -93,7 +104,7 @@ describe('Frontend-Backend Integration', () => {
     it('should render the app without crashing', async () => {
       // Arrange
       mockApiService.getProducts.mockResolvedValue({
-        data: [],
+        data: createMockProductsResponse([]),
       });
       mockApiService.getCategories.mockResolvedValue({
         data: [],
@@ -115,7 +126,7 @@ describe('Frontend-Backend Integration', () => {
     it('should render the header with navigation links', async () => {
       // Arrange
       mockApiService.getProducts.mockResolvedValue({
-        data: [],
+        data: createMockProductsResponse([]),
       });
       mockApiService.getCategories.mockResolvedValue({
         data: [],
@@ -139,7 +150,7 @@ describe('Frontend-Backend Integration', () => {
     it('should render the search bar', async () => {
       // Arrange
       mockApiService.getProducts.mockResolvedValue({
-        data: [],
+        data: createMockProductsResponse([]),
       });
       mockApiService.getCategories.mockResolvedValue({
         data: [],

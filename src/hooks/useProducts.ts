@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiService, Product } from '@/lib/api';
+import { apiService, Product, ProductsResponse } from '@/lib/api';
 
 // Product interface is now imported from api.ts
 
@@ -17,8 +17,8 @@ export const useProducts = () => {
         throw new Error(response.error);
       }
 
-      // The API returns Product[] directly
-      const productsData = response.data || [];
+      // The API returns {products: Product[], pagination: {...}}
+      const productsData = response.data?.products || [];
       setProducts(Array.isArray(productsData) ? productsData : []);
       setError(null);
     } catch (err: any) {
