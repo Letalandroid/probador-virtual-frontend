@@ -58,7 +58,7 @@ interface Category {
 }
 
 const Admin = () => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -83,7 +83,7 @@ const Admin = () => {
   });
 
   // Redirect if not authenticated or not admin
-  if (!user || userRole !== 'admin') {
+  if (!user || user.role !== 'admin') {
     return <Navigate to="/auth" replace />;
   }
 

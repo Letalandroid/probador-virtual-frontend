@@ -23,7 +23,7 @@ interface User {
 }
 
 const UserManagement = () => {
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,12 +35,12 @@ const UserManagement = () => {
   });
 
   useEffect(() => {
-    if (userRole !== 'admin') {
+    if (user?.role !== 'admin') {
       return;
     }
     fetchUsers();
     fetchUserStats();
-  }, [userRole]);
+  }, [user?.role]);
 
   const fetchUsers = async () => {
     try {
@@ -135,7 +135,7 @@ const UserManagement = () => {
     }
   };
 
-  if (userRole !== 'admin') {
+  if (user?.role !== 'admin') {
     return (
       <PageTransition>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">

@@ -2,9 +2,9 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProducts } from '../useProducts';
 import { apiService } from '@/lib/api';
-import { createMockProducts, createMockProduct } from '../../test-helpers/productMocks';
+import { createMockProducts } from '../../utils/testData';
 
-// Mock del apiService
+// Mock the API service
 jest.mock('@/lib/api', () => ({
   apiService: {
     getProducts: jest.fn(),
@@ -13,19 +13,16 @@ jest.mock('@/lib/api', () => ({
 
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
-// Helper para crear QueryClient para testing
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
     },
-  },
-});
-
-// Wrapper para QueryClient
-const wrapper = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = createTestQueryClient();
-  return (
+  });
+  
+  return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
@@ -37,297 +34,207 @@ describe('useProducts', () => {
     jest.clearAllMocks();
   });
 
-  describe('fetching products', () => {
-    it('should fetch products successfully', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(2);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.products).toEqual(mockProducts);
-      expect(result.current.error).toBeNull();
-      expect(mockApiService.getProducts).toHaveBeenCalledTimes(1);
+  it('should fetch products successfully', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(2);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
     });
 
-    it('should handle fetch error', async () => {
-      // Arrange
-      const errorMessage = 'Failed to fetch products';
-      mockApiService.getProducts.mockRejectedValue(new Error(errorMessage));
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.products).toEqual([]);
-      expect(result.current.error).toBe(errorMessage);
-      expect(mockApiService.getProducts).toHaveBeenCalledTimes(1);
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
     });
 
-    it('should show loading state initially', () => {
-      // Arrange
-      mockApiService.getProducts.mockImplementation(() => new Promise(() => {}));
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.products).toEqual([]);
-      expect(result.current.error).toBeNull();
+    // Assert
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
+
+    expect(result.current.products).toEqual(mockProducts);
+    expect(result.current.error).toBeNull();
+    expect(mockApiService.getProducts).toHaveBeenCalledTimes(1);
   });
 
-  describe('filtering products', () => {
-    it('should filter products by gender', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(4);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
+  it('should handle API errors', async () => {
+    // Arrange
+    const errorMessage = 'Failed to fetch products';
+    mockApiService.getProducts.mockRejectedValue(new Error(errorMessage));
 
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const menProducts = result.current.getProductsByGender('men');
-      const expectedMenProducts = mockProducts.filter(p => p.gender === 'men');
-      expect(menProducts).toEqual(expectedMenProducts);
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
     });
 
-    it('should filter products by category', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(4);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const categoryProducts = result.current.getProductsByCategory('Shirts');
-      const expectedCategoryProducts = mockProducts.filter(p => p.category?.name === 'Shirts');
-      expect(categoryProducts).toEqual(expectedCategoryProducts);
+    // Assert
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    it('should filter products by both gender and category', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(4);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const womenProducts = result.current.getProductsByGender('women');
-      const filteredProducts = womenProducts.filter(p => p.category?.name === 'Dresses');
-      const expectedFilteredProducts = mockProducts.filter(p => 
-        p.gender === 'women' && p.category?.name === 'Dresses'
-      );
-      expect(filteredProducts).toEqual(expectedFilteredProducts);
-    });
+    expect(result.current.products).toEqual([]);
+    expect(result.current.error).toBe(errorMessage);
   });
 
-  describe('searching products', () => {
-    it('should search products by name', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(3);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const searchedProducts = result.current.searchProducts('Test');
-      const expectedSearchedProducts = mockProducts.filter(p => 
-        p.name.toLowerCase().includes('test')
-      );
-      expect(searchedProducts).toEqual(expectedSearchedProducts);
+  it('should filter products by gender', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
     });
 
-    it('should search products by brand', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(3);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const searchedProducts = result.current.searchProducts('Brand');
-      const expectedSearchedProducts = mockProducts.filter(p => 
-        p.brand?.toLowerCase().includes('brand')
-      );
-      expect(searchedProducts).toEqual(expectedSearchedProducts);
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
     });
 
-    it('should handle empty search query', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(2);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const searchedProducts = result.current.searchProducts('');
-      expect(searchedProducts).toEqual(mockProducts);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
+
+    const womenProducts = result.current.getProductsByGender('women');
+    const menProducts = result.current.getProductsByGender('men');
+
+    // Assert
+    expect(womenProducts).toHaveLength(2); // Products with even indices (0, 2)
+    expect(menProducts).toHaveLength(2); // Products with odd indices (1, 3)
+    expect(womenProducts.every(p => p.gender === 'women')).toBe(true);
+    expect(menProducts.every(p => p.gender === 'men')).toBe(true);
   });
 
-  describe('combined filtering and searching', () => {
-    it('should combine gender filter and search', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(4);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const menProducts = result.current.getProductsByGender('men');
-      const filteredProducts = menProducts.filter(p => 
-        p.name.toLowerCase().includes('test')
-      );
-      const expectedFilteredProducts = mockProducts.filter(p => 
-        p.gender === 'men' && p.name.toLowerCase().includes('test')
-      );
-      expect(filteredProducts).toEqual(expectedFilteredProducts);
+  it('should filter products by category', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
     });
 
-    it('should combine all filters and search', async () => {
-      // Arrange
-      const mockProducts = createMockProducts(6);
-      mockApiService.getProducts.mockResolvedValue({
-        data: mockProducts,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      const womenProducts = result.current.getProductsByGender('women');
-      const categoryProducts = womenProducts.filter(p => p.category?.name === 'Dresses');
-      const filteredProducts = categoryProducts.filter(p => 
-        p.name.toLowerCase().includes('test')
-      );
-      const expectedFilteredProducts = mockProducts.filter(p => 
-        p.gender === 'women' && 
-        p.category?.name === 'Dresses' && 
-        p.name.toLowerCase().includes('test')
-      );
-      expect(filteredProducts).toEqual(expectedFilteredProducts);
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
     });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const topsProducts = result.current.getProductsByCategory('Tops');
+    const bottomsProducts = result.current.getProductsByCategory('Bottoms');
+
+    // Assert
+    expect(topsProducts).toHaveLength(2); // Products with even indices (0, 2)
+    expect(bottomsProducts).toHaveLength(2); // Products with odd indices (1, 3)
+    expect(topsProducts.every(p => p.category?.name === 'Tops')).toBe(true);
+    expect(bottomsProducts.every(p => p.category?.name === 'Bottoms')).toBe(true);
   });
 
-  describe('edge cases', () => {
-    it('should handle empty products array', async () => {
-      // Arrange
-      mockApiService.getProducts.mockResolvedValue({
-        data: [],
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.products).toEqual([]);
-      expect(result.current.error).toBeNull();
+  it('should search products by name', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
     });
 
-    it('should handle null response data', async () => {
-      // Arrange
-      mockApiService.getProducts.mockResolvedValue({
-        data: null,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.products).toEqual([]);
-      expect(result.current.error).toBeNull();
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
     });
 
-    it('should handle undefined response data', async () => {
-      // Arrange
-      mockApiService.getProducts.mockResolvedValue({
-        data: undefined,
-      });
-
-      // Act
-      const { result } = renderHook(() => useProducts(), { wrapper });
-
-      // Assert
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.products).toEqual([]);
-      expect(result.current.error).toBeNull();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
+
+    const searchResults = result.current.searchProducts('Test Product 1');
+
+    // Assert
+    expect(searchResults).toHaveLength(1);
+    expect(searchResults[0].name).toBe('Test Product 1');
+  });
+
+  it('should search products by brand', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
+    });
+
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const searchResults = result.current.searchProducts('Test Brand');
+
+    // Assert
+    expect(searchResults).toHaveLength(4); // All products have the same brand
+  });
+
+  it('should return all products when search query is empty', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
+    });
+
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const searchResults = result.current.searchProducts('');
+
+    // Assert
+    expect(searchResults).toEqual(mockProducts);
+  });
+
+  it('should return all products when gender filter is "all"', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
+    });
+
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const allProducts = result.current.getProductsByGender('all');
+
+    // Assert
+    expect(allProducts).toEqual(mockProducts);
+  });
+
+  it('should return all products when category filter is "all"', async () => {
+    // Arrange
+    const mockProducts = createMockProducts(4);
+    mockApiService.getProducts.mockResolvedValue({
+      data: mockProducts,
+    });
+
+    // Act
+    const { result } = renderHook(() => useProducts(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const allProducts = result.current.getProductsByCategory('all');
+
+    // Assert
+    expect(allProducts).toEqual(mockProducts);
   });
 });

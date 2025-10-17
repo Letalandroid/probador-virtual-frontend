@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -26,6 +27,9 @@ const ProductPreview = ({ product, isOpen, onClose }: ProductPreviewProps) => {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
+          <DialogDescription>
+            Vista previa del producto {product.name} - {product.brand || 'Marca no especificada'}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-6">
