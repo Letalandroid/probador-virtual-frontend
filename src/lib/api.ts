@@ -10,6 +10,18 @@ export interface ApiResponse<T = any> {
   message?: string;
 }
 
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface ProductsResponse {
+  products: Product[];
+  pagination: PaginationInfo;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -164,8 +176,8 @@ class ApiService {
   }
 
   // Product methods
-  async getProducts(): Promise<ApiResponse<Product[]>> {
-    return this.request<Product[]>('GET', '/products');
+  async getProducts(): Promise<ApiResponse<ProductsResponse>> {
+    return this.request<ProductsResponse>('GET', '/products');
   }
 
   async getProduct(id: string): Promise<ApiResponse<Product>> {

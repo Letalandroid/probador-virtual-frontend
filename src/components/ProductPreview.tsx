@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Product } from '@/lib/api';
 import { Camera, ShoppingBag, Heart, Star, Package, Palette, Ruler, Tag } from 'lucide-react';
 // import productPlaceholder from '@/assets/product-placeholder.jpg';
+const productPlaceholder = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
 
 interface ProductPreviewProps {
   product: Product | null;
@@ -36,11 +37,11 @@ const ProductPreview = ({ product, isOpen, onClose }: ProductPreviewProps) => {
           {/* Imagen del producto */}
           <div className="relative">
             <img
-              src={product.images && product.images.length > 0 ? product.images[0] : ''}
+              src={product.images && product.images.length > 0 ? product.images[0] : productPlaceholder}
               alt={product.name}
               className="w-full h-96 object-cover rounded-lg"
               onError={(e) => {
-                e.currentTarget.src = '';
+                e.currentTarget.src = productPlaceholder;
               }}
             />
             
