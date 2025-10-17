@@ -9,9 +9,11 @@ export default {
     '^@/integrations/supabase/client$': '<rootDir>/src/__mocks__/supabase.ts',
     // Asset mocks - more specific patterns first
     '^@/assets/hero-fashion\\.jpg$': '<rootDir>/src/__mocks__/fileMock.js',
+    '^@/assets/product-placeholder\\.jpg$': '<rootDir>/src/__mocks__/product-placeholder.js',
     '^@/assets/(.*)$': '<rootDir>/src/__mocks__/fileMock.js',
     // Relative asset imports
     '^../assets/hero-fashion\\.jpg$': '<rootDir>/src/__mocks__/fileMock.js',
+    // Generic asset pattern
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/src/__mocks__/fileMock.js',
     // Generic pattern last
     '^@/(.*)$': '<rootDir>/src/$1',
