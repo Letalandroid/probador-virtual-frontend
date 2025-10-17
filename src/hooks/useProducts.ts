@@ -85,6 +85,6 @@ export const useProducts = () => {
     trackProductView,
     getProductsByGender,
     getProductsByCategory,
-    searchProducts
+    searchProducts,
   };
 };

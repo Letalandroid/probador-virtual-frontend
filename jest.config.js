@@ -10,6 +10,8 @@ export default {
     // Asset mocks - more specific patterns first
     '^@/assets/hero-fashion\\.jpg$': '<rootDir>/src/__mocks__/fileMock.js',
     '^@/assets/(.*)$': '<rootDir>/src/__mocks__/fileMock.js',
+    // Relative asset imports
+    '^../assets/hero-fashion\\.jpg$': '<rootDir>/src/__mocks__/fileMock.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/src/__mocks__/fileMock.js',
     // Generic pattern last
     '^@/(.*)$': '<rootDir>/src/$1',

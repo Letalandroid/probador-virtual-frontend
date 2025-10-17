@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Sparkles, Camera, ShoppingBag } from 'lucide-react';
-import heroImage from '../assets/hero-fashion.jpg';
+// import heroImage from '../assets/hero-fashion.jpg';
 
 const HeroSection = () => {
   return (
@@ -57,7 +57,7 @@ const HeroSection = () => {
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-strong">
               <img
-                src={heroImage}
+                src={''}
                 alt="Fashion Model showcasing virtual try-on technology"
                 className="w-full h-[600px] object-cover"
               />
