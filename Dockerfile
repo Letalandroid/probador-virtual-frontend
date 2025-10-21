@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm i --frozen-lockfile
+RUN corepack enable pnpm && pnpm i --no-frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -32,10 +32,6 @@ COPY --from=builder /app/dist .
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Add a non-root user
-RUN addgroup --system --gid 1001 nginx
-RUN adduser --system --uid 1001 nginx
 
 # Change ownership of the web directory
 RUN chown -R nginx:nginx /usr/share/nginx/html
