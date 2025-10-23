@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Edit2, Trash2, Loader2, Package, Users, BarChart3 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Users, BarChart3, UserCheck, UserX, Shield, Mail, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -24,11 +24,11 @@ const productSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
   price: z.number().min(0, 'El precio debe ser mayor a 0'),
-  category_id: z.string().min(1, 'Selecciona una categoría'),
+  categoryId: z.string().min(1, 'Selecciona una categoría'),
   brand: z.string().optional(),
   color: z.string().optional(),
   sizes: z.string().optional(),
-  stock_quantity: z.number().min(0, 'El stock debe ser mayor o igual a 0'),
+  stockQuantity: z.number().min(0, 'El stock debe ser mayor o igual a 0'),
   gender: z.enum(['men', 'women', 'kids', 'unisex']),
 });
 
@@ -39,22 +39,52 @@ interface Product {
   name: string;
   description?: string;
   price: number;
-  category_id: string;
+  categoryId: string;
   brand?: string;
   color?: string;
   sizes: string[];
-  stock_quantity: number;
-  is_active: boolean;
+  stockQuantity: number;
+  isActive: boolean;
   gender: string;
-  created_at: string;
-  categories?: { name: string };
+  createdAt: string;
+  category?: { name: string };
 }
 
 interface Category {
   id: string;
   name: string;
   description?: string;
-  is_active: boolean;
+  isActive: boolean;
+}
+
+interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  role: 'admin' | 'client';
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  createdAt: string;
+  updatedAt: string;
+  is_active?: boolean;
+}
+
+interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  adminUsers: number;
+  clientUsers: number;
+  newUsersThisMonth: number;
+}
+
+interface ProductStats {
+  totalProducts: number;
+  activeProducts: number;
+  lowStockProducts: number;
+  totalCategories: number;
 }
 
 const Admin = () => {
@@ -62,10 +92,15 @@ const Admin = () => {
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [productStats, setProductStats] = useState<ProductStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   const form = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
@@ -73,92 +108,134 @@ const Admin = () => {
       name: '',
       description: '',
       price: 0,
-      category_id: '',
+      categoryId: '',
       brand: '',
       color: '',
       sizes: '',
-      stock_quantity: 0,
+      stockQuantity: 0,
       gender: 'unisex',
     },
   });
 
-  // Redirect if not authenticated or not admin
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/auth" replace />;
-  }
+  const fetchProducts = useCallback(async () => {
+    const response = await apiService.getProducts();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    await Promise.all([fetchProducts(), fetchCategories()]);
-    setIsLoading(false);
-  };
-
-  const fetchProducts = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        categories (name)
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    if (response.error) {
       toast({
         title: "Error",
         description: "No se pudieron cargar los productos",
         variant: "destructive",
       });
     } else {
-      setProducts(data || []);
+      const productList = response.data?.products || [];
+      setProducts(productList);
+      // Calculate product stats
+      const stats = {
+        totalProducts: productList.length,
+        activeProducts: productList.filter(product => product.isActive).length,
+        lowStockProducts: productList.filter(product => product.stockQuantity < 10).length,
+        totalCategories: categories.length,
+      };
+      setProductStats(stats);
     }
-  };
+  }, [toast, categories.length]);
 
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('name');
+  const fetchCategories = useCallback(async () => {
+    const response = await apiService.getCategories();
 
-    if (error) {
+    if (response.error) {
       toast({
         title: "Error",
         description: "No se pudieron cargar las categorías",
         variant: "destructive",
       });
     } else {
-      setCategories(data || []);
+      // Filter active categories on the frontend since the API returns all categories
+      const activeCategories = (response.data || []).filter(cat => cat.isActive);
+      setCategories(activeCategories);
     }
+  }, [toast]);
+
+  const fetchUsers = useCallback(async () => {
+    const response = await apiService.getUsers();
+
+    if (response.error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los usuarios",
+        variant: "destructive",
+      });
+    } else {
+      setUsers(response.data || []);
+      // Calculate user stats
+      const stats = calculateUserStats(response.data || []);
+      setUserStats(stats);
+    }
+  }, [toast]);
+
+  const calculateUserStats = (userList: User[]): UserStats => {
+    const totalUsers = userList.length;
+    const activeUsers = userList.filter(user => user.is_active !== false).length;
+    const adminUsers = userList.filter(user => user.role === 'admin').length;
+    const clientUsers = userList.filter(user => user.role === 'client').length;
+    
+    // Calculate new users this month
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const newUsersThisMonth = userList.filter(user => {
+      const userDate = new Date(user.createdAt);
+      return userDate.getMonth() === currentMonth && userDate.getFullYear() === currentYear;
+    }).length;
+
+    return {
+      totalUsers,
+      activeUsers,
+      adminUsers,
+      clientUsers,
+      newUsersThisMonth,
+    };
   };
+
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    await Promise.all([fetchProducts(), fetchCategories(), fetchUsers()]);
+    setIsLoading(false);
+  }, [fetchProducts, fetchCategories, fetchUsers]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
 
   const onSubmit = async (data: ProductForm) => {
     setIsSubmitting(true);
 
     try {
       const productData = {
-        ...data,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        categoryId: data.categoryId,
+        brand: data.brand,
+        color: data.color,
         sizes: data.sizes ? data.sizes.split(',').map(s => s.trim()) : [],
-        created_by: user?.id,
+        stockQuantity: data.stockQuantity,
+        gender: data.gender,
+        isActive: true,
+        images: [], // Default empty array for images
+        updatedAt: new Date().toISOString(),
       };
 
-      let result;
+      let response;
       if (editingProduct) {
-        result = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', editingProduct.id);
+        response = await apiService.updateProduct(editingProduct.id, productData);
       } else {
-        result = await supabase
-          .from('products')
-          .insert([productData]);
+        response = await apiService.createProduct(productData);
       }
 
-      if (result.error) {
-        throw result.error;
+      if (response.error) {
+        throw new Error(response.error);
       }
 
       toast({
@@ -170,10 +247,11 @@ const Admin = () => {
       setEditingProduct(null);
       setIsDialogOpen(false);
       await fetchProducts();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -187,12 +265,12 @@ const Admin = () => {
       name: product.name,
       description: product.description || '',
       price: product.price,
-      category_id: product.category_id,
+      categoryId: product.categoryId,
       brand: product.brand || '',
       color: product.color || '',
       sizes: product.sizes.join(', '),
-      stock_quantity: product.stock_quantity,
-      gender: product.gender as any,
+      stockQuantity: product.stockQuantity,
+      gender: product.gender as 'men' | 'women' | 'kids' | 'unisex',
     });
     setIsDialogOpen(true);
   };
@@ -202,12 +280,9 @@ const Admin = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from('products')
-      .update({ is_active: false })
-      .eq('id', productId);
+    const response = await apiService.deleteProduct(productId);
 
-    if (error) {
+    if (response.error) {
       toast({
         title: "Error",
         description: "No se pudo eliminar el producto",
@@ -227,6 +302,65 @@ const Admin = () => {
     form.reset();
     setIsDialogOpen(true);
   };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+      return;
+    }
+
+    const response = await apiService.deleteUser(userId);
+
+    if (response.error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el usuario",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Éxito",
+        description: "Usuario eliminado exitosamente",
+      });
+      await fetchUsers();
+    }
+  };
+
+  const handleChangeUserRole = async (userId: string, newRole: 'admin' | 'client') => {
+    const response = await apiService.updateUserRole(userId, newRole);
+
+    if (response.error) {
+      toast({
+        title: "Error",
+        description: "No se pudo cambiar el rol del usuario",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Éxito",
+        description: `Rol cambiado a ${newRole === 'admin' ? 'Administrador' : 'Cliente'}`,
+      });
+      await fetchUsers();
+    }
+  };
+
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    // This would need to be implemented in the API service
+    // For now, we'll show a message that this feature is not yet implemented
+    toast({
+      title: "Información",
+      description: "La funcionalidad de cambio de estado está en desarrollo",
+    });
+  };
+
+  // Redirect if not authenticated or not admin
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/auth" replace />;
+  }
 
   if (isLoading) {
     return (
@@ -334,7 +468,7 @@ const Admin = () => {
 
                               <FormField
                                 control={form.control}
-                                name="category_id"
+                                name="categoryId"
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Categoría *</FormLabel>
@@ -425,7 +559,7 @@ const Admin = () => {
 
                               <FormField
                                 control={form.control}
-                                name="stock_quantity"
+                                name="stockQuantity"
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Stock *</FormLabel>
@@ -496,14 +630,14 @@ const Admin = () => {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   <h4 className="font-semibold">{product.name}</h4>
-                                  <Badge variant={product.is_active ? "default" : "secondary"}>
-                                    {product.is_active ? 'Activo' : 'Inactivo'}
+                                  <Badge variant={product.isActive ? "default" : "secondary"}>
+                                    {product.isActive ? 'Activo' : 'Inactivo'}
                                   </Badge>
                                 </div>
                                 <div className="text-sm text-muted-foreground space-y-1">
-                                  <p>Categoría: {product.categories?.name}</p>
+                                  <p>Categoría: {product.category?.name}</p>
                                   <p>Precio: ${product.price.toLocaleString()}</p>
-                                  <p>Stock: {product.stock_quantity} unidades</p>
+                                  <p>Stock: {product.stockQuantity} unidades</p>
                                   {product.brand && <p>Marca: {product.brand}</p>}
                                   {product.color && <p>Color: {product.color}</p>}
                                 </div>
@@ -542,35 +676,210 @@ const Admin = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-8">
-                      <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Próximamente</h3>
-                      <p className="text-muted-foreground">
-                        La gestión de usuarios estará disponible pronto
-                      </p>
+                    <div className="space-y-4">
+                      {users.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">No hay usuarios</h3>
+                          <p className="text-muted-foreground">
+                            No se encontraron usuarios registrados
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                          {users.map((user) => (
+                            <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-semibold">{user.full_name || 'Usuario sin nombre'}</h4>
+                                  <Badge variant={user.is_active !== false ? "default" : "secondary"}>
+                                    {user.is_active !== false ? 'Activo' : 'Inactivo'}
+                                  </Badge>
+                                  <Badge variant={user.role === 'admin' ? "destructive" : "outline"}>
+                                    {user.role === 'admin' ? 'Administrador' : 'Cliente'}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4" />
+                                    <span>{user.email}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>Registrado: {new Date(user.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                  {user.phone && (
+                                    <div className="flex items-center gap-2">
+                                      <span>Teléfono: {user.phone}</span>
+                                    </div>
+                                  )}
+                                  {user.city && (
+                                    <div className="flex items-center gap-2">
+                                      <span>Ciudad: {user.city}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleChangeUserRole(user.id, user.role === 'admin' ? 'client' : 'admin')}
+                                >
+                                  {user.role === 'admin' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditUser(user)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteUser(user.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
               <TabsContent value="reports">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Reportes y Estadísticas</CardTitle>
-                    <CardDescription>
-                      Visualiza estadísticas de productos y ventas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8">
-                      <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Próximamente</h3>
-                      <p className="text-muted-foreground">
-                        Los reportes estarán disponibles pronto
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="space-y-6">
+                  {/* User Statistics */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Estadísticas de Usuarios
+                      </CardTitle>
+                      <CardDescription>
+                        Resumen de usuarios registrados en la plataforma
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {userStats ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Users className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium">Total Usuarios</span>
+                            </div>
+                            <p className="text-2xl font-bold">{userStats.totalUsers}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <UserCheck className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-medium">Usuarios Activos</span>
+                            </div>
+                            <p className="text-2xl font-bold">{userStats.activeUsers}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Shield className="h-4 w-4 text-red-600" />
+                              <span className="text-sm font-medium">Administradores</span>
+                            </div>
+                            <p className="text-2xl font-bold">{userStats.adminUsers}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <UserX className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-medium">Clientes</span>
+                            </div>
+                            <p className="text-2xl font-bold">{userStats.clientUsers}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                          <p className="text-muted-foreground">Cargando estadísticas de usuarios...</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Product Statistics */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="h-5 w-5" />
+                        Estadísticas de Productos
+                      </CardTitle>
+                      <CardDescription>
+                        Resumen del catálogo de productos
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {productStats ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium">Total Productos</span>
+                            </div>
+                            <p className="text-2xl font-bold">{productStats.totalProducts}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-medium">Productos Activos</span>
+                            </div>
+                            <p className="text-2xl font-bold">{productStats.activeProducts}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-medium">Stock Bajo</span>
+                            </div>
+                            <p className="text-2xl font-bold">{productStats.lowStockProducts}</p>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Package className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-medium">Categorías</span>
+                            </div>
+                            <p className="text-2xl font-bold">{productStats.totalCategories}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                          <p className="text-muted-foreground">Cargando estadísticas de productos...</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Additional Reports Placeholder */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Reportes Adicionales
+                      </CardTitle>
+                      <CardDescription>
+                        Reportes detallados y análisis de ventas
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8">
+                        <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Próximamente</h3>
+                        <p className="text-muted-foreground">
+                          Reportes detallados de ventas, análisis de tendencias y métricas avanzadas estarán disponibles pronto
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
