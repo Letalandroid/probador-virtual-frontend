@@ -85,10 +85,10 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
-                        Productos
+                        Panel de Administración
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    {/* <DropdownMenuItem asChild>
                       <Link to="/gestion-usuarios" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
                         Usuarios
@@ -99,7 +99,7 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
                         <Settings className="mr-2 h-4 w-4" />
                         Reportes
                       </Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                   </>
                 )}
                 <DropdownMenuSeparator />
