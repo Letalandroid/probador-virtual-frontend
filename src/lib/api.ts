@@ -76,7 +76,7 @@ export interface Category {
   createdAt: string;
 }
 
-class ApiService {
+export class ApiService {
   private axiosInstance: AxiosInstance;
   private token: string | null = null;
 
