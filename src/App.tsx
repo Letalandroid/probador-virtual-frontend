@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./components/ThemeProvider";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -20,36 +21,38 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/productos" element={<Products />} />
-            <Route path="/productos/:id" element={<ProductDetail />} />
-            <Route path="/mujeres" element={<Women />} />
-            <Route path="/hombres" element={<Men />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/perfil" element={<Profile />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/gestion-usuarios" element={<UserManagement />} />
-            <Route path="/reportes" element={<Reports />} />
-            <Route path="/probador-virtual" element={<VirtualTryOn />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ThemeProvider defaultTheme="light" storageKey="styleai-theme">
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/productos" element={<Products />} />
+              <Route path="/productos/:id" element={<ProductDetail />} />
+              <Route path="/mujeres" element={<Women />} />
+              <Route path="/hombres" element={<Men />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/perfil" element={<Profile />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/gestion-usuarios" element={<UserManagement />} />
+              <Route path="/reportes" element={<Reports />} />
+              <Route path="/probador-virtual" element={<VirtualTryOn />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

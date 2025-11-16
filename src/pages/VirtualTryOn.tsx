@@ -421,7 +421,7 @@ const VirtualTryOn = () => {
                   {!userImage ? (
                     <div className="space-y-6">
                       {/* Instrucciones y Avisos */}
-                      <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 sm:p-6 space-y-4">
+                      <div className="bg-accent-muted border border-accent rounded-lg p-4 sm:p-6 space-y-4">
                         <div className="flex items-start gap-3">
                           <Lightbulb className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
@@ -448,7 +448,7 @@ const VirtualTryOn = () => {
                             </ul>
                           </div>
                         </div>
-                        <div className="flex items-start gap-2 pt-3 border-t border-accent/20">
+                        <div className="flex items-start gap-2 pt-3 border-t border-accent">
                           <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                           <p className="text-xs text-muted-foreground flex-1">
                             <strong className="text-amber-600 dark:text-amber-400">Importante:</strong> Si alguno de estos requisitos no se cumple correctamente, el resultado puede no ser el esperado. Para obtener los mejores resultados, sigue todas las instrucciones.
@@ -457,18 +457,17 @@ const VirtualTryOn = () => {
                       </div>
 
                       {/* Imagen de ejemplo */}
-                      <div className="bg-muted/50 border border-muted rounded-lg p-4 space-y-3">
+                      <div className="bg-muted border border-border rounded-lg p-4 space-y-3">
                         <div className="flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-primary" />
                           <h4 className="font-semibold text-sm">Ejemplo de foto correcta</h4>
                         </div>
-                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20 bg-background">
+                        <div className="relative rounded-lg overflow-hidden border-2 border-primary bg-background">
                           <img 
                             src={personaExample} 
                             alt="Ejemplo de foto correcta para el probador virtual"
                             className="w-full h-auto object-contain"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                         </div>
                         <p className="text-xs text-muted-foreground text-center">
                           Esta es un ejemplo de cómo debe verse tu foto: bien iluminada, encuadre de torso completo y posición frontal
@@ -477,7 +476,7 @@ const VirtualTryOn = () => {
 
                       {/* Área de carga */}
                       <div 
-                        className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                        className="border-2 border-dashed border-muted-foreground rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -600,8 +599,8 @@ const VirtualTryOn = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Camera className="h-6 w-6 text-primary" />
+                    <div className="w-12 h-12 bg-accent-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Camera className="h-6 w-6 text-accent" />
                     </div>
                     <h3 className="font-semibold mb-2">Buena iluminación</h3>
                     <p className="text-sm text-muted-foreground">
@@ -609,8 +608,8 @@ const VirtualTryOn = () => {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Upload className="h-6 w-6 text-primary" />
+                    <div className="w-12 h-12 bg-accent-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Upload className="h-6 w-6 text-accent" />
                     </div>
                     <h3 className="font-semibold mb-2">Foto de cuerpo completo</h3>
                     <p className="text-sm text-muted-foreground">
@@ -618,8 +617,8 @@ const VirtualTryOn = () => {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <RotateCcw className="h-6 w-6 text-primary" />
+                    <div className="w-12 h-12 bg-accent-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                      <RotateCcw className="h-6 w-6 text-accent" />
                     </div>
                     <h3 className="font-semibold mb-2">Fondo simple</h3>
                     <p className="text-sm text-muted-foreground">

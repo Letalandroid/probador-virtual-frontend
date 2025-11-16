@@ -209,7 +209,7 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
 
                 {/* AI Try-On Overlay - Solo para prendas de torso */}
                 {product.category && isTorsoCategory(product.category.name) && (
-                  <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-90 transition-opacity flex items-center justify-center">
                     <Button 
                       variant="fashion" 
                       size="lg"

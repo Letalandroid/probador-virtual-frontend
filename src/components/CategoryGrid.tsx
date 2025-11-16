@@ -9,7 +9,7 @@ const categories = [
     name: 'Camisetas',
     description: 'Estilos casuales y formales',
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
-    color: 'bg-fashion-sage/20',
+    color: 'bg-fashion-sage',
     count: '250+ productos'
   },
   {
@@ -17,7 +17,7 @@ const categories = [
     name: 'Vestidos',
     description: 'Elegancia para cada ocasión',
     image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=400&fit=crop',
-    color: 'bg-fashion-rose/20',
+    color: 'bg-fashion-rose',
     count: '180+ productos'
   },
   {
@@ -25,7 +25,7 @@ const categories = [
     name: 'Pantalones',
     description: 'Comodidad y estilo',
     image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=400&fit=crop',
-    color: 'bg-accent/20',
+    color: 'bg-accent-muted',
     count: '320+ productos'
   },
   {
@@ -33,7 +33,7 @@ const categories = [
     name: 'Chaquetas',
     description: 'Para todas las temporadas',
     image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop',
-    color: 'bg-fashion-cream/40',
+    color: 'bg-fashion-cream',
     count: '150+ productos'
   }
 ];
@@ -74,18 +74,18 @@ const CategoryGrid = () => {
               onClick={() => handleCategoryClick(category.name)}
             >
               <div className="relative">
-                <div className={`absolute inset-0 ${category.color} z-10`} />
+                <div className={`absolute inset-0 ${category.color} z-10 opacity-30`} />
                 <img
                   src={category.image}
                   alt={category.name}
                   className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent z-20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/30 to-transparent z-20" />
                 
-                <div className="absolute bottom-4 left-4 right-4 z-30 text-white">
+                <div className="absolute bottom-4 left-4 right-4 z-30 text-white drop-shadow-lg">
                   <h3 className="text-xl font-bold mb-1">{category.name}</h3>
-                  <p className="text-sm opacity-90 mb-2">{category.description}</p>
-                  <span className="text-xs bg-white/20 backdrop-blur px-2 py-1 rounded">
+                  <p className="text-sm mb-2">{category.description}</p>
+                  <span className="text-xs bg-white bg-opacity-90 backdrop-blur-sm px-2 py-1 rounded text-foreground">
                     {category.count}
                   </span>
                 </div>
