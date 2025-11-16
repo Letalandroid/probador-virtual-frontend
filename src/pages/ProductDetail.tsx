@@ -13,6 +13,14 @@ import PageTransition from '@/components/PageTransition';
 // import productPlaceholder from '@/assets/product-placeholder.jpg';
 const productPlaceholder = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
 
+// Categorías permitidas para el probador virtual (solo prendas de torso)
+const ALLOWED_TORSO_CATEGORIES = ['Vestidos', 'Blusas', 'Sudaderas', 'Chaquetas', 'Camisetas'];
+
+const isTorsoCategory = (categoryName?: string): boolean => {
+  if (!categoryName) return false;
+  return ALLOWED_TORSO_CATEGORIES.includes(categoryName);
+};
+
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -96,6 +104,12 @@ const ProductDetail = () => {
           images: product.images,
           brand: product.brand,
           price: product.price,
+          category: product.category,
+          sizes: product.sizes,
+          color: product.color,
+          gender: product.gender,
+          description: product.description,
+          stockQuantity: product.stockQuantity,
         }
       }
     });
@@ -375,14 +389,17 @@ const ProductDetail = () => {
                     </Button>
                   </div>
                   
-                  <Button 
-                    className="w-full" 
-                    variant="secondary"
-                    onClick={handleVirtualTryOn}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Probar con IA
-                  </Button>
+                  {/* Solo mostrar botón de probador virtual para prendas de torso */}
+                  {product.category && isTorsoCategory(product.category.name) && (
+                    <Button 
+                      className="w-full" 
+                      variant="secondary"
+                      onClick={handleVirtualTryOn}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Probar con IA
+                    </Button>
+                  )}
                 </div>
 
                 {/* Product Details */}

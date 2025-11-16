@@ -31,9 +31,9 @@ type LoginForm = z.infer<typeof loginSchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, isLoading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
 
   const loginForm = useForm<LoginForm>({
@@ -54,15 +54,26 @@ const Auth = () => {
     },
   });
 
+  // Wait for auth to finish loading before checking
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   // Redirect if already authenticated
   if (user) {
-    return <Navigate to="/" replace />;
+    // Si el usuario viene de /admin, redirigir de vuelta a /admin
+    const from = new URLSearchParams(window.location.search).get('from') || '/';
+    return <Navigate to={from} replace />;
   }
 
   const onLogin = async (data: LoginForm) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     const { error } = await signIn(data.email, data.password);
-    setIsLoading(false);
+    setIsSubmitting(false);
     
     if (!error) {
       // Navigation is handled by auth state change
@@ -70,9 +81,9 @@ const Auth = () => {
   };
 
   const onRegister = async (data: RegisterForm) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     const { error } = await signUp(data.email, data.password, data.fullName);
-    setIsLoading(false);
+    setIsSubmitting(false);
     
     if (!error) {
       // Switch to login tab after successful registration
@@ -154,8 +165,8 @@ const Auth = () => {
                       )}
                     />
                     
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Iniciar Sesión
                     </Button>
                   </form>
@@ -255,8 +266,8 @@ const Auth = () => {
                       )}
                     />
                     
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Crear Cuenta
                     </Button>
                   </form>

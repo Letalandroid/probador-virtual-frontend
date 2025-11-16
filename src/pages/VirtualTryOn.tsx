@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Upload, Camera, Download, RotateCcw, Loader2, Sparkles } from 'lucide-react';
+import { Upload, Camera, Download, RotateCcw, Loader2, Sparkles, Lightbulb, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageTransition from '@/components/PageTransition';
 import { supabase } from '@/integrations/supabase/client';
+import personaExample from '@/assets/persona.jpg';
 
 interface LocationState {
   product?: {
@@ -23,6 +24,11 @@ interface LocationState {
       id: string;
       name: string;
     };
+    sizes?: string[];
+    color?: string;
+    gender?: string;
+    description?: string;
+    stockQuantity?: number;
   };
 }
 
@@ -106,16 +112,27 @@ const VirtualTryOn = () => {
         throw new Error('No se pudo cargar la imagen del producto. Inténtalo de nuevo.');
       }
 
+      // Preparar todos los datos del producto para el probador virtual
+      const productData = {
+        style: 'realistic',
+        quality: 'high',
+        product_name: product.name,
+        product_brand: product.brand,
+        product_category: product.category?.name,
+        product_id: product.id,
+        sizes: product.sizes || [],
+        color: product.color,
+        gender: product.gender,
+        description: product.description,
+        stock_quantity: product.stockQuantity,
+        price: product.price,
+      };
+
       const response = await apiService.virtualTryOn(
         userImage,
         productImageBase64, // Now using base64 instead of URL
         clothingType, // Dynamic clothing type based on product category
-        {
-          style: 'realistic',
-          quality: 'high',
-          product_name: product.name,
-          product_brand: product.brand
-        }
+        productData
       );
 
       console.log('Python AI API response:', response);
@@ -402,7 +419,63 @@ const VirtualTryOn = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {!userImage ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      {/* Instrucciones y Avisos */}
+                      <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 sm:p-6 space-y-4">
+                        <div className="flex items-start gap-3">
+                          <Lightbulb className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm sm:text-base mb-3">Instrucciones para mejores resultados</h3>
+                            <ul className="space-y-2.5 text-xs sm:text-sm">
+                              <li className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                <span className="flex-1">
+                                  <strong className="text-foreground">Iluminación adecuada:</strong> La foto debe ser tomada en un área bien iluminada para que la IA pueda detectar correctamente tu figura.
+                                </span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                <span className="flex-1">
+                                  <strong className="text-foreground">Encuadre correcto:</strong> La foto debe ser tomada de la mitad del cuerpo hacia arriba (torso completo), mostrando desde la cintura hasta la cabeza.
+                                </span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                <span className="flex-1">
+                                  <strong className="text-foreground">Posición frontal:</strong> El usuario de la foto debe estar con el rostro y cuerpo mirando hacia el frente, directamente hacia la cámara.
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2 pt-3 border-t border-accent/20">
+                          <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-muted-foreground flex-1">
+                            <strong className="text-amber-600 dark:text-amber-400">Importante:</strong> Si alguno de estos requisitos no se cumple correctamente, el resultado puede no ser el esperado. Para obtener los mejores resultados, sigue todas las instrucciones.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Imagen de ejemplo */}
+                      <div className="bg-muted/50 border border-muted rounded-lg p-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold text-sm">Ejemplo de foto correcta</h4>
+                        </div>
+                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20 bg-background">
+                          <img 
+                            src={personaExample} 
+                            alt="Ejemplo de foto correcta para el probador virtual"
+                            className="w-full h-auto object-contain"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                          Esta es un ejemplo de cómo debe verse tu foto: bien iluminada, encuadre de torso completo y posición frontal
+                        </p>
+                      </div>
+
+                      {/* Área de carga */}
                       <div 
                         className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
                         onClick={() => fileInputRef.current?.click()}

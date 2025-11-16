@@ -43,9 +43,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check for existing session on mount
     const checkAuth = async () => {
-      const token = localStorage.getItem('auth_token');
+      const token = apiService.getToken();
       if (token) {
-        await fetchCurrentUser();
+        try {
+          await fetchCurrentUser();
+        } catch (error) {
+          // Si hay error al obtener el usuario, limpiar el token
+          console.error('Error verificando sesión:', error);
+          apiService.setToken(null);
+          setUser(null);
+        }
       }
       setIsLoading(false);
     };
@@ -71,7 +78,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        // El token ya se guardó en apiService.register
+        // Obtener el usuario completo después del registro
+        const userResponse = await apiService.getCurrentUser();
+        if (userResponse.data) {
+          setUser(userResponse.data);
+        } else {
+          setUser(response.data.user);
+        }
         toast({
           title: "¡Registro exitoso!",
           description: "Tu cuenta ha sido creada correctamente.",
@@ -106,7 +120,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        // El token ya se guardó en apiService.login
+        // Obtener el usuario completo después del login
+        const userResponse = await apiService.getCurrentUser();
+        if (userResponse.data) {
+          setUser(userResponse.data);
+        } else {
+          setUser(response.data.user);
+        }
         toast({
           title: "¡Bienvenido!",
           description: "Has iniciado sesión exitosamente.",
@@ -145,13 +166,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return { error: new Error('No user logged in') };
 
     try {
-      // For now, we'll just update the local state
-      // In a real app, you'd call an API endpoint to update the user
-      setUser({ ...user, ...data });
+      const response = await apiService.updateProfile(data);
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      // Actualizar el usuario local con los datos actualizados
+      if (response.data?.profile) {
+        setUser({ ...user, ...response.data.profile });
+      } else {
+        setUser({ ...user, ...data });
+      }
       
       toast({
         title: "Perfil actualizado",
-        description: "Tu perfil se ha actualizado exitosamente.",
+        description: "Tu perfil se ha actualizado exitosamente y guardado en la base de datos.",
       });
 
       return { error: null };

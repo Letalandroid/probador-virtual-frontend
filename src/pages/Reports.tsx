@@ -12,11 +12,15 @@ import {
   Users, 
   Zap,
   BarChart3,
-  UserX 
+  UserX,
+  Download,
+  FileText
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import PageTransition from '@/components/PageTransition';
+import { Button } from '@/components/ui/button';
+import { apiService } from '@/lib/api';
 
 interface ProductStats {
   id: string;
@@ -49,6 +53,7 @@ const Reports = () => {
     revenue_this_month: 0
   });
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const [timeFilter, setTimeFilter] = useState('all');
 
   useEffect(() => {
@@ -179,6 +184,25 @@ const Reports = () => {
     }
   };
 
+  const handleDownloadReport = async (reportType: 'product-views' | 'virtual-try-on' | 'product-movements', format: 'pdf' | 'csv') => {
+    try {
+      setDownloading(`${reportType}-${format}`);
+      await apiService.downloadReport(reportType, format);
+      toast({
+        title: "Éxito",
+        description: `Reporte ${format.toUpperCase()} descargado exitosamente`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al descargar el reporte",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   if (user?.role !== 'admin') {
     return (
       <PageTransition>
@@ -279,14 +303,74 @@ const Reports = () => {
             </Card>
           </div>
 
+          {/* Reporte de Movimientos */}
+          <Card className="mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2" />
+                  Movimientos de Productos
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadReport('product-movements', 'pdf')}
+                    disabled={downloading === 'product-movements-pdf'}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadReport('product-movements', 'csv')}
+                    disabled={downloading === 'product-movements-csv'}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    CSV
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Descarga el reporte completo de movimientos de productos incluyendo actualizaciones de stock, 
+                últimas visualizaciones y pruebas virtuales.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Product Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Eye className="h-5 w-5 mr-2" />
-                  Productos Más Vistos
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Productos Más Vistos
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadReport('product-views', 'pdf')}
+                      disabled={downloading === 'product-views-pdf'}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadReport('product-views', 'csv')}
+                      disabled={downloading === 'product-views-csv'}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      CSV
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -333,10 +417,32 @@ const Reports = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Zap className="h-5 w-5 mr-2" />
-                  Productos Más Probados Virtualmente
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Zap className="h-5 w-5 mr-2" />
+                    Productos Más Probados Virtualmente
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadReport('virtual-try-on', 'pdf')}
+                      disabled={downloading === 'virtual-try-on-pdf'}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadReport('virtual-try-on', 'csv')}
+                      disabled={downloading === 'virtual-try-on-csv'}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      CSV
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (

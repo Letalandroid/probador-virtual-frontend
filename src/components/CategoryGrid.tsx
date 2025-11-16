@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -38,6 +39,21 @@ const categories = [
 ];
 
 const CategoryGrid = () => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (categoryName: string) => {
+    // Mapear nombres de categorías a rutas o filtros
+    const categoryMap: { [key: string]: string } = {
+      'Camisetas': '/productos?category=camisetas',
+      'Vestidos': '/productos?category=vestidos',
+      'Pantalones': '/productos?category=pantalones',
+      'Chaquetas': '/productos?category=chaquetas',
+    };
+    
+    const route = categoryMap[categoryName] || '/productos';
+    navigate(route);
+  };
+
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
@@ -55,6 +71,7 @@ const CategoryGrid = () => {
             <Card 
               key={category.id} 
               className="group overflow-hidden border-0 shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer"
+              onClick={() => handleCategoryClick(category.name)}
             >
               <div className="relative">
                 <div className={`absolute inset-0 ${category.color} z-10`} />
@@ -75,7 +92,14 @@ const CategoryGrid = () => {
               </div>
               
               <div className="p-4">
-                <Button variant="outline" className="w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
+                <Button 
+                  variant="outline" 
+                  className="w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCategoryClick(category.name);
+                  }}
+                >
                   Explorar {category.name}
                 </Button>
               </div>

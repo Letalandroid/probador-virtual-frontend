@@ -96,8 +96,10 @@ export class ApiService {
     // Request interceptor to add auth token
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        if (this.token) {
-          config.headers.Authorization = `Bearer ${this.token}`;
+        // Leer el token del localStorage en cada petición para asegurar que esté actualizado
+        const token = this.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
@@ -114,9 +116,11 @@ export class ApiService {
       (error) => {
         if (error.response?.status === 401) {
           // Token expired or invalid
-          this.token = null;
-          localStorage.removeItem('auth_token');
-          window.location.href = '/auth';
+          this.setToken(null);
+          // Solo redirigir si no estamos ya en la página de auth
+          if (window.location.pathname !== '/auth') {
+            window.location.href = '/auth';
+          }
         }
         return Promise.reject(error);
       }
@@ -148,8 +152,7 @@ export class ApiService {
     const response = await this.request<{ user: User; token: string }>('POST', '/auth/login', credentials);
 
     if (response.data?.token) {
-      this.token = response.data.token;
-      localStorage.setItem('auth_token', response.data.token);
+      this.setToken(response.data.token);
     }
 
     return response;
@@ -159,16 +162,29 @@ export class ApiService {
     const response = await this.request<{ user: User; token: string }>('POST', '/auth/register', userData);
 
     if (response.data?.token) {
-      this.token = response.data.token;
-      localStorage.setItem('auth_token', response.data.token);
+      this.setToken(response.data.token);
     }
 
     return response;
   }
 
   async logout(): Promise<void> {
-    this.token = null;
-    localStorage.removeItem('auth_token');
+    this.setToken(null);
+  }
+
+  getToken(): string | null {
+    // Leer siempre del localStorage para asegurar que esté sincronizado
+    this.token = localStorage.getItem('auth_token');
+    return this.token;
+  }
+
+  setToken(token: string | null): void {
+    this.token = token;
+    if (token) {
+      localStorage.setItem('auth_token', token);
+    } else {
+      localStorage.removeItem('auth_token');
+    }
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
@@ -224,6 +240,22 @@ export class ApiService {
 
   async deleteUser(id: string): Promise<ApiResponse<void>> {
     return this.request<void>('DELETE', `/users/${id}`);
+  }
+
+  async updateProfile(profileData: Partial<{
+    full_name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    postal_code?: string;
+    country?: string;
+    avatar_url?: string;
+  }>): Promise<ApiResponse<any>> {
+    return this.request<any>('PUT', '/users/profile/me', profileData);
+  }
+
+  async getMyProfile(): Promise<ApiResponse<any>> {
+    return this.request<any>('GET', '/users/profile/me');
   }
 
   // AI/Virtual Try-On methods - Direct to Python API
@@ -440,6 +472,38 @@ export class ApiService {
     
     const byteArray = new Uint8Array(byteNumbers);
     return new Blob([byteArray], { type: mimeType });
+  }
+
+  async downloadReport(
+    reportType: 'product-views' | 'virtual-try-on' | 'product-movements' | 'sales' | 'top-selling' | 'sales-trends' | 'conversion-metrics',
+    format: 'pdf' | 'csv'
+  ): Promise<void> {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No autenticado');
+    }
+
+    const url = `${this.axiosInstance.defaults.baseURL}/reports/${reportType}/${format}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al descargar reporte: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${reportType}_${new Date().toISOString().split('T')[0]}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
   }
 }
 

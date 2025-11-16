@@ -12,6 +12,14 @@ import ProductPreview from './ProductPreview';
 const productPlaceholder = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=';
 import { Product } from '@/lib/api';
 
+// Categorías permitidas para el probador virtual (solo prendas de torso)
+const ALLOWED_TORSO_CATEGORIES = ['Vestidos', 'Blusas', 'Sudaderas', 'Chaquetas', 'Camisetas'];
+
+const isTorsoCategory = (categoryName?: string): boolean => {
+  if (!categoryName) return false;
+  return ALLOWED_TORSO_CATEGORIES.includes(categoryName);
+};
+
 interface ProductGridProps {
   searchQuery?: string;
   genderFilter?: string;
@@ -199,30 +207,38 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                   </Button>
                 </div>
 
-                {/* AI Try-On Overlay */}
-                <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button 
-                    variant="fashion" 
-                    size="lg"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/probador-virtual', {
-                        state: {
-                          product: {
-                            id: product.id,
-                            name: product.name,
-                            images: product.images,
-                            brand: product.brand,
-                            price: product.price,
+                {/* AI Try-On Overlay - Solo para prendas de torso */}
+                {product.category && isTorsoCategory(product.category.name) && (
+                  <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button 
+                      variant="fashion" 
+                      size="lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/probador-virtual', {
+                          state: {
+                            product: {
+                              id: product.id,
+                              name: product.name,
+                              images: product.images,
+                              brand: product.brand,
+                              price: product.price,
+                              category: product.category,
+                              sizes: product.sizes,
+                              color: product.color,
+                              gender: product.gender,
+                              description: product.description,
+                              stockQuantity: product.stockQuantity,
+                            }
                           }
-                        }
-                      });
-                    }}
-                  >
-                    <Camera className="h-5 w-5 mr-2" />
-                    Probar con IA
-                  </Button>
-                </div>
+                        });
+                      }}
+                    >
+                      <Camera className="h-5 w-5 mr-2" />
+                      Probar con IA
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 space-y-3">
@@ -265,26 +281,35 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                     <ShoppingBag className="h-4 w-4 mr-2" />
                     {product.stockQuantity > 0 ? 'Agregar' : 'Agotado'}
                   </Button>
-                  <Button 
-                    size="icon" 
-                    variant="accent"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/probador-virtual', {
-                        state: {
-                          product: {
-                            id: product.id,
-                            name: product.name,
-                            images: product.images,
-                            brand: product.brand,
-                            price: product.price,
+                  {/* Solo mostrar botón de probador virtual para prendas de torso */}
+                  {product.category && isTorsoCategory(product.category.name) && (
+                    <Button 
+                      size="icon" 
+                      variant="accent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/probador-virtual', {
+                          state: {
+                            product: {
+                              id: product.id,
+                              name: product.name,
+                              images: product.images,
+                              brand: product.brand,
+                              price: product.price,
+                              category: product.category,
+                              sizes: product.sizes,
+                              color: product.color,
+                              gender: product.gender,
+                              description: product.description,
+                              stockQuantity: product.stockQuantity,
+                            }
                           }
-                        }
-                      });
-                    }}
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                        });
+                      }}
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
