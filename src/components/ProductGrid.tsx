@@ -223,6 +223,12 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                               images: product.images,
                               brand: product.brand,
                               price: product.price,
+                              category: product.category,
+                              sizes: product.sizes,
+                              color: product.color,
+                              gender: product.gender,
+                              description: product.description,
+                              stockQuantity: product.stockQuantity,
                             }
                           }
                         });
@@ -290,6 +296,12 @@ const ProductGrid = ({ searchQuery = '', genderFilter = 'all' }: ProductGridProp
                               images: product.images,
                               brand: product.brand,
                               price: product.price,
+                              category: product.category,
+                              sizes: product.sizes,
+                              color: product.color,
+                              gender: product.gender,
+                              description: product.description,
+                              stockQuantity: product.stockQuantity,
                             }
                           }
                         });
