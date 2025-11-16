@@ -6,47 +6,47 @@
 
 @layer base {
   :root {
-    /* Core Theme Colors */
-    --background: 0 0% 99%;
-    --foreground: 222 25% 15%;
+    /* Core Theme Colors - Modo Claro con colores sólidos y vibrantes */
+    --background: 0 0% 100%;
+    --foreground: 222 25% 10%;
     
     /* Fashion Brand Colors */
-    --primary: 222 25% 15%; /* Deep navy for luxury feel */
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 222 30% 20%;
+    --primary: 222 30% 12%; /* Deep navy for luxury feel - más oscuro y sólido */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 222 35% 18%;
     
-    /* Gold Accent System */
-    --accent: 40 85% 65%; /* Warm gold */
-    --accent-foreground: 222 25% 15%;
-    --accent-light: 40 90% 75%;
-    --accent-muted: 40 35% 85%;
+    /* Gold Accent System - Colores más vibrantes */
+    --accent: 40 90% 60%; /* Warm gold - más vibrante */
+    --accent-foreground: 222 30% 12%;
+    --accent-light: 40 95% 70%;
+    --accent-muted: 40 50% 90%;
     
     /* Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 222 25% 15%;
+    --card-foreground: 222 25% 10%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 25% 15%;
+    --popover-foreground: 222 25% 10%;
     
     /* Neutral Grays */
-    --secondary: 220 10% 96%;
-    --secondary-foreground: 222 25% 15%;
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 222 25% 10%;
     
-    --muted: 220 8% 94%;
-    --muted-foreground: 222 12% 45%;
+    --muted: 220 12% 96%;
+    --muted-foreground: 222 15% 40%;
     
-    /* Fashion Category Colors */
-    --fashion-rose: 350 85% 75%;
-    --fashion-sage: 140 20% 70%;
-    --fashion-cream: 45 40% 92%;
+    /* Fashion Category Colors - Más vibrantes */
+    --fashion-rose: 350 90% 70%;
+    --fashion-sage: 140 30% 65%;
+    --fashion-cream: 45 50% 90%;
     
     /* System Colors */
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
     
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
-    --ring: 40 85% 65%;
+    --border: 220 15% 85%;
+    --input: 220 15% 85%;
+    --ring: 40 90% 60%;
     
     --radius: 0.75rem;
     
@@ -55,11 +55,11 @@
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
     --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(220 15% 98%));
     
-    /* Elegant Shadows */
-    --shadow-soft: 0 2px 15px -5px hsl(var(--primary) / 0.1);
-    --shadow-medium: 0 8px 30px -8px hsl(var(--primary) / 0.15);
-    --shadow-strong: 0 15px 40px -10px hsl(var(--primary) / 0.2);
-    --shadow-accent: 0 8px 25px -8px hsl(var(--accent) / 0.3);
+    /* Elegant Shadows - Colores sólidos sin opacidad */
+    --shadow-soft: 0 2px 15px -5px rgba(34, 40, 49, 0.1);
+    --shadow-medium: 0 8px 30px -8px rgba(34, 40, 49, 0.15);
+    --shadow-strong: 0 15px 40px -10px rgba(34, 40, 49, 0.2);
+    --shadow-accent: 0 8px 25px -8px rgba(218, 165, 32, 0.3);
     
     /* Fashion Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -112,10 +112,10 @@
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
     --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(222 18% 15%));
     
-    --shadow-soft: 0 2px 15px -5px hsl(0 0% 0% / 0.3);
-    --shadow-medium: 0 8px 30px -8px hsl(0 0% 0% / 0.4);
-    --shadow-strong: 0 15px 40px -10px hsl(0 0% 0% / 0.5);
-    --shadow-accent: 0 8px 25px -8px hsl(var(--accent) / 0.4);
+    --shadow-soft: 0 2px 15px -5px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 8px 30px -8px rgba(0, 0, 0, 0.4);
+    --shadow-strong: 0 15px 40px -10px rgba(0, 0, 0, 0.5);
+    --shadow-accent: 0 8px 25px -8px rgba(218, 165, 32, 0.4);
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -157,7 +157,7 @@
   }
   
   .card-fashion {
-    @apply bg-gradient-to-b from-card to-card/95 transition-all duration-300 rounded-lg;
+    @apply bg-card transition-all duration-300 rounded-lg;
     box-shadow: var(--shadow-soft);
   }
   

@@ -21,7 +21,7 @@ const HeroSection = () => {
           {/* Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-medium">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-muted text-accent text-sm font-medium">
                 <Sparkles className="h-4 w-4" />
                 Nuevo: Probador Virtual con IA
               </div>
@@ -81,10 +81,10 @@ const HeroSection = () => {
                 alt="Fashion Model showcasing virtual try-on technology"
                 className="w-full h-[400px] sm:h-[500px] lg:h-[600px] object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
               
               {/* Floating AI Badge */}
-              <div className="absolute top-6 right-6 bg-background/90 backdrop-blur rounded-lg px-3 py-2 shadow-medium">
+              <div className="absolute top-6 right-6 bg-background backdrop-blur-sm rounded-lg px-3 py-2 shadow-medium border border-border">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
                   IA Activa
@@ -93,8 +93,8 @@ const HeroSection = () => {
             </div>
 
             {/* Decorative Elements */}
-            <div className="absolute -top-4 -left-4 w-24 h-24 bg-accent/20 rounded-full blur-xl" />
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-fashion-rose/20 rounded-full blur-2xl" />
+            <div className="absolute -top-4 -left-4 w-24 h-24 bg-accent-muted rounded-full blur-xl opacity-50" />
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-fashion-rose rounded-full blur-2xl opacity-30" />
           </div>
         </div>
       </div>

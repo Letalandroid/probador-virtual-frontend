@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   onSearch?: (query: string) => void;
@@ -30,7 +31,7 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background/95">
       <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-1 sm:space-x-2">
@@ -75,6 +76,7 @@ const Header = ({ onSearch, onGenderFilter }: HeaderProps) => {
           <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
             <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
+          <ThemeToggle />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
