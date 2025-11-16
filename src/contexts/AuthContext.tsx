@@ -43,9 +43,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check for existing session on mount
     const checkAuth = async () => {
-      const token = localStorage.getItem('auth_token');
+      const token = apiService.getToken();
       if (token) {
-        await fetchCurrentUser();
+        try {
+          await fetchCurrentUser();
+        } catch (error) {
+          // Si hay error al obtener el usuario, limpiar el token
+          console.error('Error verificando sesión:', error);
+          apiService.setToken(null);
+          setUser(null);
+        }
       }
       setIsLoading(false);
     };
@@ -71,7 +78,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        // El token ya se guardó en apiService.register
+        // Obtener el usuario completo después del registro
+        const userResponse = await apiService.getCurrentUser();
+        if (userResponse.data) {
+          setUser(userResponse.data);
+        } else {
+          setUser(response.data.user);
+        }
         toast({
           title: "¡Registro exitoso!",
           description: "Tu cuenta ha sido creada correctamente.",
@@ -106,7 +120,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (response.data) {
-        setUser(response.data.user);
+        // El token ya se guardó en apiService.login
+        // Obtener el usuario completo después del login
+        const userResponse = await apiService.getCurrentUser();
+        if (userResponse.data) {
+          setUser(userResponse.data);
+        } else {
+          setUser(response.data.user);
+        }
         toast({
           title: "¡Bienvenido!",
           description: "Has iniciado sesión exitosamente.",

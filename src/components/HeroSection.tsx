@@ -1,8 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Sparkles, Camera, ShoppingBag } from 'lucide-react';
-// import heroImage from '../assets/hero-fashion.jpg';
+import { useNavigate } from 'react-router-dom';
+import heroImage from '@/assets/hero-fashion.jpg';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleTryOn = () => {
+    navigate('/probador-virtual');
+  };
+
+  const handleViewCatalog = () => {
+    navigate('/productos');
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background to-secondary">
       <div className="container mx-auto px-4 py-16 lg:py-24">
@@ -26,29 +37,38 @@ const HeroSection = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="lg" className="group">
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="group"
+                onClick={handleTryOn}
+              >
                 <Camera className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
                 Probar Ahora
               </Button>
-              <Button variant="outline" size="lg">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={handleViewCatalog}
+              >
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 Ver Catálogo
               </Button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t">
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-6 sm:pt-8 border-t">
               <div>
-                <div className="text-2xl font-bold text-primary">95%</div>
-                <div className="text-sm text-muted-foreground">Precisión IA</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">95%</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Precisión IA</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">10k+</div>
-                <div className="text-sm text-muted-foreground">Productos</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">10k+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Productos</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">5★</div>
-                <div className="text-sm text-muted-foreground">Valoración</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">5★</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Valoración</div>
               </div>
             </div>
           </div>
@@ -57,9 +77,9 @@ const HeroSection = () => {
           <div className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-strong">
               <img
-                src={''}
+                src={heroImage}
                 alt="Fashion Model showcasing virtual try-on technology"
-                className="w-full h-[600px] object-cover"
+                className="w-full h-[400px] sm:h-[500px] lg:h-[600px] object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
               

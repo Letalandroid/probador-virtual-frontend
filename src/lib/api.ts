@@ -169,8 +169,7 @@ export class ApiService {
   }
 
   async logout(): Promise<void> {
-    this.token = null;
-    localStorage.removeItem('auth_token');
+    this.setToken(null);
   }
 
   getToken(): string | null {
@@ -475,7 +474,10 @@ export class ApiService {
     return new Blob([byteArray], { type: mimeType });
   }
 
-  async downloadReport(reportType: 'product-views' | 'virtual-try-on' | 'product-movements', format: 'pdf' | 'csv'): Promise<void> {
+  async downloadReport(
+    reportType: 'product-views' | 'virtual-try-on' | 'product-movements' | 'sales' | 'top-selling' | 'sales-trends' | 'conversion-metrics',
+    format: 'pdf' | 'csv'
+  ): Promise<void> {
     const token = this.getToken();
     if (!token) {
       throw new Error('No autenticado');
