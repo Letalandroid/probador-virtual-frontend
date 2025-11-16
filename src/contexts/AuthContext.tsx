@@ -145,13 +145,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return { error: new Error('No user logged in') };
 
     try {
-      // For now, we'll just update the local state
-      // In a real app, you'd call an API endpoint to update the user
-      setUser({ ...user, ...data });
+      const response = await apiService.updateProfile(data);
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      // Actualizar el usuario local con los datos actualizados
+      if (response.data?.profile) {
+        setUser({ ...user, ...response.data.profile });
+      } else {
+        setUser({ ...user, ...data });
+      }
       
       toast({
         title: "Perfil actualizado",
-        description: "Tu perfil se ha actualizado exitosamente.",
+        description: "Tu perfil se ha actualizado exitosamente y guardado en la base de datos.",
       });
 
       return { error: null };

@@ -29,7 +29,7 @@ const productSchema = z.object({
   color: z.string().optional(),
   sizes: z.string().optional(),
   stockQuantity: z.number().min(0, 'El stock debe ser mayor o igual a 0'),
-  gender: z.enum(['men', 'women', 'kids', 'unisex']),
+  gender: z.enum(['men', 'women', 'unisex']), // No se incluye 'kids' según RF02
 });
 
 type ProductForm = z.infer<typeof productSchema>;
@@ -270,7 +270,7 @@ const Admin = () => {
       color: product.color || '',
       sizes: product.sizes.join(', '),
       stockQuantity: product.stockQuantity,
-      gender: product.gender as 'men' | 'women' | 'kids' | 'unisex',
+      gender: product.gender as 'men' | 'women' | 'unisex', // No se incluye 'kids' según RF02
     });
     setIsDialogOpen(true);
   };
