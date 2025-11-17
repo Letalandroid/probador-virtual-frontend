@@ -474,6 +474,75 @@ export class ApiService {
     return new Blob([byteArray], { type: mimeType });
   }
 
+  // Health check methods
+  async checkServiceStatus(): Promise<ApiResponse<{
+    status: 'active' | 'degraded' | 'timeout';
+    services: {
+      backend: boolean;
+      database: boolean;
+      aiService: boolean;
+    };
+    responseTime: number;
+    timestamp: string;
+    error?: string;
+  }>> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos timeout
+
+    try {
+      const response = await fetch(`${this.axiosInstance.defaults.baseURL}/health/status`, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        return {
+          error: 'Timeout: Los servicios no respondieron en 3 segundos',
+          data: {
+            status: 'timeout' as const,
+            services: {
+              backend: false,
+              database: false,
+              aiService: false,
+            },
+            responseTime: 3000,
+            timestamp: new Date().toISOString(),
+            error: 'La verificación de servicios tardó más de 3 segundos',
+          },
+        };
+      }
+
+      return {
+        error: error.message || 'Error al verificar el estado de los servicios',
+        data: {
+          status: 'timeout' as const,
+          services: {
+            backend: false,
+            database: false,
+            aiService: false,
+          },
+          responseTime: 3000,
+          timestamp: new Date().toISOString(),
+          error: error.message,
+        },
+      };
+    }
+  }
+
   async downloadReport(
     reportType: 'product-views' | 'virtual-try-on' | 'product-movements' | 'sales' | 'top-selling' | 'sales-trends' | 'conversion-metrics',
     format: 'pdf' | 'csv'

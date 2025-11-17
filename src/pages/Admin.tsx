@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PageTransition from '@/components/PageTransition';
+import ServiceStatus from '@/components/ServiceStatus';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 
 const productSchema = z.object({
@@ -536,7 +537,7 @@ const Admin = () => {
             </div>
 
             <Tabs defaultValue="products" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="products" className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   Productos
@@ -548,6 +549,10 @@ const Admin = () => {
                 <TabsTrigger value="reports" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Reportes
+                </TabsTrigger>
+                <TabsTrigger value="status" className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Estado
                 </TabsTrigger>
               </TabsList>
 
@@ -1249,6 +1254,12 @@ const Admin = () => {
                       </CardContent>
                     </Card>
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="status">
+                <div className="space-y-6">
+                  <ServiceStatus />
                 </div>
               </TabsContent>
             </Tabs>
